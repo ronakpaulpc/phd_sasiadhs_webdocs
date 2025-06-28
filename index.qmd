@@ -1,11 +1,32 @@
 ---
-title: "phd_sasiadhs_website01"
+title: "South Asia DHS harmonization and analysis documentation"
+subtitle: "Part of PhD project on Infant Mortality Clustering in South Asia"
+image: "website_pics/sasia_map_2.jpeg"
+about: solana
 ---
 
-This is a Quarto website.
+This is the Quarto website for documentation of harmonization, pooling and analysis of South Asian Demographic and Health Survey (DHS) datasets. This is a part of my PHD research on **"Clustering and Risk Factors of Fetal Deaths and Early-life Mortality and Across Families and Communities in South Asian Countries"** under Dr Abhishek Singh and Dr Domantas Jasilionis. In South Asia, DHS datasets are available for the following 6 countries:
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+1.  Afghanistan
 
-```{r}
-1 + 1
-```
+2.  Bangladesh
+
+3.  India
+
+4.  Maldives
+
+5.  Nepal
+
+6.  Pakistan
+
+The contents of this website are distributed into the following sections:
+
+-   **Raw Data Dictionaries:** This section contains the dictionaries of the variables available across the birth history, individual, household and person recode files of South Asian DHS.
+
+-   **Data Pooling Pre-checks:** Here we have documented the variable structures before harmonizing and pooling.
+
+-   **Preliminary Data Analysis:** In this section we perform basic data analysis to get an idea about the trends and determinants of early-life mortality clustering.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>. For queries and updates do get in touch with me at [ronakpaulpc\@yahoo.com](ronakpaulpc@yahoo.com).
+
+

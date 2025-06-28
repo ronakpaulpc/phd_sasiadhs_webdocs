@@ -2,20 +2,99 @@ project:
   type: website
 
 website:
-  title: "phd_sasiadhs_website01"
+  title: "Mortality Clustering Project"
+  open-graph: true
+  page-footer: "Maintained with ❤️ by Ronak and Quarto"
+  page-navigation: true
+  search: 
+    location: sidebar
+    type: textbox
+  back-to-top-navigation: true
   navbar:
     left:
-      - href: index.qmd
+      - icon: house-fill
         text: Home
-      - about.qmd
-
+        href: index.qmd
+      - text: About
+        href: about.qmd
+      - text: Raw Data Dictionaries
+        menu:
+        - text: Afghanistan DHS Dictionary
+          href: dadict_afdhs.qmd
+        - text: Bangladesh DHS Dictionary
+          href: dadict_bddhs.qmd
+        - text: India DHS Dictionary
+          href: dadict_iadhs.qmd  
+        - text: Maldives DHS Dictionary
+          href: dadict_mvdhs.qmd
+        - text: Nepal DHS Dictionary
+          href: dadict_npdhs.qmd
+        - text: Pakistan DHS Dictionary
+          href: dadict_pkdhs.qmd
+      - text: Data Pooling Pre-checks
+        menu:
+        - text: Bangladesh DHS Pre-checks
+          href: dapool_prechk-v01_bddhs.qmd
+        - text: Maldives DHS Pre-checks
+          href: dapool_prechk-v01_mvdhs.qmd
+        - text: Nepal DHS Pre-checks
+          href: dapool_prechk-v01_npdhs.qmd
+        - text: Pakistan DHS Pre-checks
+          href: dapool_prechk-v01_pkdhs.qmd
+      - text: Preliminary Data Analysis
+        menu:
+        - text: Bangladesh DHS Prelim
+          href: daanal_prelim-v01_bddhs.qmd
+        - text: Nepal DHS Prelim
+          href: daanal_prelim-v01_npdhs.qmd
+  sidebar: 
+    style: docked
+    background: none
+    collapse-level: 1
+    contents: 
+      - section: "Raw Data Dictionaries"
+        contents: 
+          - text: Afghanistan DHS Dictionary
+            href: dadict_afdhs.qmd
+          - text: Bangladesh DHS Dictionary
+            href: dadict_bddhs.qmd
+          - text: India DHS Dictionary
+            href: dadict_iadhs.qmd
+          - text: Maldives DHS Dictionary
+            href: dadict_mvdhs.qmd            
+          - text: Nepal DHS Dictionary
+            href: dadict_npdhs.qmd
+          - text: Pakistan DHS Dictionary
+            href: dadict_pkdhs.qmd            
+      - section: "Data Pooling Pre-checks"
+        contents:
+          - text: Bangladesh DHS Pre-checks
+            href: dapool_prechk-v01_bddhs.qmd
+          - text: Maldives DHS Pre-checks
+            href: dapool_prechk-v01_mvdhs.qmd
+          - text: Nepal DHS Pre-checks
+            href: dapool_prechk-v01_npdhs.qmd
+          - text: Pakistan DHS Pre-checks
+            href: dapool_prechk-v01_pkdhs.qmd
+      - section: "Preliminary Data Analysis"
+        contents:
+          - text: Bangladesh DHS Prelim
+            href: daanal_prelim-v01_bddhs.qmd
+          - text: Nepal DHS Prelim
+            href: daanal_prelim-v01_npdhs.qmd
+    
 format:
   html:
-    theme:
-      - cosmo
-      - brand
+    theme: 
+      light: flatly
+      dark: darkly
+    respect-user-color-scheme: true
     css: styles.css
     toc: true
+    toc-expand: 2
+    execute:
+      warning: false
 
+editor: visual
 
 
