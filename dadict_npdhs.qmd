@@ -1,0 +1,719 @@
+---
+title: "Nepal DHS data dictionary"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 10, 
+  # font.family = "Helvetica",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+We document the variable labels and other contents of all variables across all the Nepal Demographic and Health Survey (DHS) datasets here. This will be primary document for viewing what variables are available for use in PhD research. We check the variable labels before running the pooling code in "daprep-v01_npdhs.R". 
+
+This document contains variable details for the following Nepal DHS surveys:
+
+```{r}
+#| label: data-import
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the npbr nested tibble
+npbr_raw <- read_rds(
+  file = here("website_data", "npbr1_nest0.rds")
+)
+# Importing the npir nested tibble
+npir_raw <- read_rds(
+  file = here("website_data", "npir1_nest0.rds")
+)
+# Importing the nphr nested tibble
+nphr_raw <- read_rds(
+  file = here("website_data", "nphr1_nest0.rds")
+)
+# Importing the nppr nested tibble
+nppr_raw <- read_rds(
+  file = here("website_data", "nppr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "Nepal DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+npbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from nphr_tmp_intro
+  left_join(
+    nphr_raw |> select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from nppr_tmp_intro
+  left_join(
+    nppr_raw |> select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+
+```{r}
+#| label: fn-gen-dadict
+#| echo: false
+#| output: false
+
+# We create a function for generating basic data dictionary
+dadict_basic <- function(df) {
+  df |> 
+  # create data dictionary
+  labelled::lookfor(details = "basic") |> 
+  # keep only the required columns
+  select(-c(levels, value_labels)) |> 
+  # for correctly viewing the range column in data dictionary
+  labelled::convert_list_columns_to_character()
+}
+
+```
+
+# Nepal Birth History Recode data dictionary
+
+Here we check the variable details of the Nepal birth history recode (BR) dataset. We will view the data dictionaries round-wise.
+
+## Nepal BR 1996
+
+Here we check the data dictionary of Nepal BR 1996 dataset.
+
+```{r}
+#| label: dict-npbr-1996
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr 1996 dataset.
+npbr_raw$npbr_data$npbr_1996 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal BR 2001
+
+Here we check the data dictionary of Nepal BR 2001 dataset.
+
+```{r}
+#| label: dict-npbr-2001
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr 2001 dataset.
+npbr_raw$npbr_data$npbr_2001 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal BR 2006
+
+Here we check the data dictionary of Nepal BR 2006 dataset.
+
+```{r}
+#| label: dict-npbr-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr 2006 dataset.
+npbr_raw$npbr_data$npbr_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal BR 2011
+
+Here we check the data dictionary of Nepal BR 2011 dataset.
+
+```{r}
+#| label: dict-npbr-2011
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr 2011 dataset.
+npbr_raw$npbr_data$npbr_2011 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal BR 2016
+
+Here we check the data dictionary of Nepal BR 2016 dataset.
+
+```{r}
+#| label: dict-npbr-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr 2016 dataset.
+npbr_raw$npbr_data$npbr_2016 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal BR 2022
+
+Here we check the data dictionary of Nepal BR 2022 dataset.
+
+```{r}
+#| label: dict-npbr-2022
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr 2022 dataset.
+npbr_raw$npbr_data$npbr_2022 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Nepal Individual Recode data dictionary
+
+Here we check the variable details of the Nepal individual recode (IR) dataset. Note that, the individual recode files are generally huge in size. Therefore, we will import the original STATA datasets directly, prepare the data dictionaries and clear them from memory before proceeding with the next dataset. We will view the data dictionaries round-wise.
+
+## Nepal IR 1996
+
+Here we check the data dictionary of Nepal IR 1996 dataset.
+
+```{r}
+#| label: dict-npir-1996
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npir 1996 dataset.
+npir_raw$npir_data$npir_1996 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-npir-1996
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(npir_1996)
+# Clean unused memory
+gc()
+
+```
+
+## Nepal IR 2001
+
+Here we check the data dictionary of Nepal IR 2001 dataset.
+
+```{r}
+#| label: dict-npir-2001
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npir 2001 dataset.
+npir_raw$npir_data$npir_2001 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-npir-2001
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(npir_2001)
+# Clean unused memory
+gc()
+
+```
+
+## Nepal IR 2006
+
+Here we check the data dictionary of Nepal IR 2006 dataset.
+
+```{r}
+#| label: dict-npir-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npir 2006 dataset.
+npir_raw$npir_data$npir_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-npir-2006
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(npir_2006)
+# Clean unused memory
+gc()
+
+```
+
+## Nepal IR 2011
+
+Here we check the data dictionary of Nepal IR 2011 dataset.
+
+```{r}
+#| label: dict-npir-2011
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npir 2011 dataset.
+npir_raw$npir_data$npir_2011 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-npir-2011
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(npir_2011)
+# Clean unused memory
+gc()
+
+```
+
+## Nepal IR 2016
+
+Here we check the data dictionary of Nepal IR 2016 dataset.
+
+```{r}
+#| label: dict-npir-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npir 2016 dataset.
+npir_raw$npir_data$npir_2016 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-npir-2016
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(npir_2016)
+# Clean unused memory
+gc()
+
+```
+
+## Nepal IR 2022
+
+Here we check the data dictionary of Nepal IR 2022 dataset.
+
+```{r}
+#| label: dict-npir-2022
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npir 2022 dataset.
+npir_raw$npir_data$npir_2022 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-npir-2022
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(npir_2022)
+# Clean unused memory
+gc()
+
+```
+
+# Nepal Household Recode data dictionary
+
+Here we check the variable details of the Nepal household recode (HR) dataset. We will view the data dictionaries round-wise.
+
+## Nepal HR 1996
+
+Here we check the data dictionary of Nepal HR 1996 dataset.
+
+```{r}
+#| label: dict-nphr-1996
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nphr 1996 dataset.
+nphr_raw$nphr_data$nphr_1996 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal HR 2001
+
+Here we check the data dictionary of Nepal HR 2001 dataset.
+
+```{r}
+#| label: dict-nphr-2001
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nphr 2001 dataset.
+nphr_raw$nphr_data$nphr_2001 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal HR 2006
+
+Here we check the data dictionary of Nepal HR 2006 dataset.
+
+```{r}
+#| label: dict-nphr-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nphr 2006 dataset.
+nphr_raw$nphr_data$nphr_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal HR 2011
+
+Here we check the data dictionary of Nepal HR 2011 dataset.
+
+```{r}
+#| label: dict-nphr-2011
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nphr 2011 dataset.
+nphr_raw$nphr_data$nphr_2011 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal HR 2016
+
+Here we check the data dictionary of Nepal HR 2016 dataset.
+
+```{r}
+#| label: dict-nphr-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nphr 2016 dataset.
+nphr_raw$nphr_data$nphr_2016 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal HR 2022
+
+Here we check the data dictionary of Nepal HR 2022 dataset.
+
+```{r}
+#| label: dict-nphr-2022
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nphr 2022 dataset.
+nphr_raw$nphr_data$nphr_2022 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Nepal Person Recode data dictionary
+
+Here we check the variable details of the Nepal person recode (PR) dataset. We will view the data dictionaries round-wise.
+
+## Nepal PR 1996
+
+Here we check the data dictionary of Nepal PR 1996 dataset.
+
+```{r}
+#| label: dict-nppr-1996
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nppr 1996 dataset.
+nppr_raw$nppr_data$nppr_1996 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal PR 2001
+
+Here we check the data dictionary of Nepal PR 2001 dataset.
+
+```{r}
+#| label: dict-nppr-2001
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nppr 2001 dataset.
+nppr_raw$nppr_data$nppr_2001 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal PR 2006
+
+Here we check the data dictionary of Nepal PR 2006 dataset.
+
+```{r}
+#| label: dict-nppr-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nppr 2006 dataset.
+nppr_raw$nppr_data$nppr_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal PR 2011
+
+Here we check the data dictionary of Nepal PR 2011 dataset.
+
+```{r}
+#| label: dict-nppr-2011
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nppr 2011 dataset.
+nppr_raw$nppr_data$nppr_2011 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal PR 2016
+
+Here we check the data dictionary of Nepal PR 2016 dataset.
+
+```{r}
+#| label: dict-nppr-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nppr 2016 dataset.
+nppr_raw$nppr_data$nppr_2016 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Nepal PR 2022
+
+Here we check the data dictionary of Nepal PR 2022 dataset.
+
+```{r}
+#| label: dict-nppr-2022
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the nppr 2022 dataset.
+nppr_raw$nppr_data$nppr_2022 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+
+
+
+
+
+
+
+
+

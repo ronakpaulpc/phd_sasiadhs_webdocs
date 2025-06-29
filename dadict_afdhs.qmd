@@ -1,0 +1,285 @@
+---
+title: "Afghanistan DHS data dictionary"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 10, 
+  # font.family = "Helvetica",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+We document the variable labels and other contents of all variables across all the Afghanistan Demographic and Health Survey (DHS) datasets here. This will be primary document for viewing what variables are available for use in PhD research. We check the variable labels before running the pooling code in "daprep-v01_afdhs.R".
+
+This document contains variable details for the following Afghanistan DHS surveys:
+
+```{r}
+#| label: data-import
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the afbr nested tibble
+afbr_raw <- read_rds(
+  file = here("website_data", "afbr1_nest0.rds")
+)
+# Importing the afir nested tibble
+afir_raw <- read_rds(
+  file = here("website_data", "afir1_nest0.rds")
+)
+# Importing the afhr nested tibble
+afhr_raw <- read_rds(
+  file = here("website_data", "afhr1_nest0.rds")
+)
+# Importing the afpr nested tibble
+afpr_raw <- read_rds(
+  file = here("website_data", "afpr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "Afghanistan DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+afbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from afhr_tmp_intro
+  left_join(
+    afhr_raw |> select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from afpr_tmp_intro
+  left_join(
+    afpr_raw |> select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+
+```{r}
+#| label: fn-gen-dadict
+#| echo: false
+#| output: false
+
+# We create a function for generating basic data dictionary
+dadict_basic <- function(df) {
+  df |> 
+  # create data dictionary
+  labelled::lookfor(details = "basic") |> 
+  # keep only the required columns
+  select(-c(levels, value_labels)) |> 
+  # for correctly viewing the range column in data dictionary
+  labelled::convert_list_columns_to_character()
+}
+
+```
+
+# Afghanistan Birth History Recode data dictionary
+
+Here we check the variable details of the Afghanistan birth history recode (BR) dataset. We will view the data dictionaries round-wise.
+
+## Afghanistan BR 2015
+
+Here we check the data dictionary of Afghanistan BR 2015 dataset.
+
+```{r}
+#| label: dict-afbr-2015
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the afbr 2015 dataset.
+afbr_raw$afbr_data$afbr_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Afghanistan Individual Recode data dictionary
+
+Here we check the variable details of the Afghanistan individual recode (IR) dataset. Note that, the individual recode files are generally huge in size. Therefore, we will import the original STATA datasets directly, prepare the data dictionaries and clear them from memory before proceeding with the next dataset. We will view the data dictionaries round-wise.
+
+## Afghanistan IR 2015
+
+Here we check the data dictionary of Afghanistan IR 2015 dataset.
+
+```{r}
+#| label: dict-afir-2015
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the afir 2015 dataset.
+afir_raw$afir_data$afir_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-afir-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(afir_2015)
+# Clean unused memory
+gc()
+
+```
+
+# Afghanistan Household Recode data dictionary
+
+Here we check the variable details of the Afghanistan household recode (HR) dataset. We will view the data dictionaries round-wise.
+
+## Afghanistan HR 2015
+
+Here we check the data dictionary of Afghanistan HR 2015 dataset.
+
+```{r}
+#| label: dict-afhr-2015
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the afhr 2015 dataset.
+afhr_raw$afhr_data$afhr_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Afghanistan Person Recode data dictionary
+
+Here we check the variable details of the Afghanistan person recode (PR) dataset. We will view the data dictionaries round-wise.
+
+## Afghanistan PR 2015
+
+Here we check the data dictionary of Afghanistan PR 2015 dataset.
+
+```{r}
+#| label: dict-afpr-2015
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the afpr 2015 dataset.
+afpr_raw$afpr_data$afpr_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

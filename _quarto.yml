@@ -6,10 +6,10 @@ website:
   open-graph: true
   page-footer: "Maintained with ❤️ by Ronak and Quarto"
   page-navigation: true
+  back-to-top-navigation: true
   search: 
     location: sidebar
     type: textbox
-  back-to-top-navigation: true
   navbar:
     left:
       - icon: house-fill

@@ -2,20 +2,16 @@
 title: "About"
 ---
 
-# South Asia DHS Harmonization & Documentation Website
+# About South Asia DHS Harmonization & Documentation Website
 
 This is the Quarto website for documenting the harmonization, pooling, and preliminary analysis of Demographic and Health Survey (DHS) datasets from South Asian countries.
 
 Visit the site: https://ronakpaulpc.github.io/sasiadhs-dhs-webdocs/
 
-# About
-
 This work is part of my PhD research on **"Clustering and Risk Factors of Fetal Deaths and Early-life Mortality Across Families and Communities in South Asian Countries"** at the International Institute for Population Sciences, Mumbai.
 
 # Contents
 
-- Raw Data Dictionaries
-- Data Pooling Pre-checks
-- Preliminary Data Analyses
-
-
+-   Raw Data Dictionaries
+-   Data Pooling Pre-checks
+-   Preliminary Data Analyses

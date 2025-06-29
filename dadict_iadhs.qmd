@@ -1,0 +1,901 @@
+---
+title: "India DHS data dictionary"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 10, 
+  # font.family = "Helvetica",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+We document the variable labels and other contents of all variables across all the India Demographic and Health Survey (DHS) datasets here. This will be primary document for viewing what variables are available for use in PhD research. We check the variable labels before running the pooling code in "daprep-v01_iadhs.R".
+
+**NOTE:** India DHS rounds 4 and 5 are huge in size and RStudio and Widows OS crashes when all the nested tibbles are loaded at once.
+**SOLU:** Keeping this in mind, we will re-order the steps to import each dataset individually, create their dictionaries and remove them from memory.
+
+We need to import and export each IR, BR, HR and PR dataset individually. Then we will export the raw versions and create their data dictionary here. After manually inspecting the data dictionaries we can remove the vars not required and make the datasets lighter. Then we will re-export and continue with the data preparation steps as usual.
+
+This document contains variable details for the following India DHS surveys:
+
+```{r}
+#| label: data-import
+#| eval: false
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the iahr nested tibble
+iahr_raw <- read_rds(
+  file = here("website_data", "iahr1_nest0.rds")
+)
+# Importing the iahr nested tibble
+iahr_raw <- read_rds(
+  file = here("website_data", "iahr1_nest0.rds")
+)
+# Importing the iapr nested tibble
+iapr_raw <- read_rds(
+  file = here("website_data", "iapr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| eval: false
+#| echo: false
+#| output: false
+#| tbl-cap: "India DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+iahr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from iahr_tmp_intro
+  left_join(
+    iahr_raw |> select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from iapr_tmp_intro
+  left_join(
+    iapr_raw |> select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+**NOTE:** The @tbl-detail-survey-rounds is based on nested tibbles that are created after examining the data dictionaries that we have created below.
+
+Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+
+```{r}
+#| label: fn-gen-dadict
+#| echo: false
+#| output: false
+
+# We create a function for generating basic data dictionary
+dadict_basic <- function(df) {
+  df |> 
+  # create data dictionary
+  labelled::lookfor(details = "basic") |> 
+  # keep only the required columns
+  select(-c(levels, value_labels)) |> 
+  # for correctly viewing the range column in data dictionary
+  labelled::convert_list_columns_to_character()
+}
+
+```
+
+# India Birth History Recode data dictionary
+
+Here we check the variable details of the India birth history recode (BR) dataset. We will view the data dictionaries round-wise. As the datasets are huge is size, we import them, create the data dictionary, remove them from memory and continue with the next one.
+
+## India BR 1992
+
+Here we check the data dictionary of India BR 1992 dataset.
+
+```{r}
+#| label: dict-iabr-1992
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iabr_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_1992.DTA"))
+
+# We create the data dictionary of the iabr 1992 dataset.
+iabr_1992 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iabr-1992
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iabr_1992)
+# Clean unused memory
+gc()
+
+```
+
+## India BR 1998
+
+Here we check the data dictionary of India BR 1998 dataset.
+
+```{r}
+#| label: dict-iabr-1998
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iabr_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_1998.dta"))
+
+# We create the data dictionary of the iabr 1998 dataset.
+iabr_1998 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iabr-1998
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iabr_1998)
+# Clean unused memory
+gc()
+
+```
+
+## India BR 2005
+
+Here we check the data dictionary of India BR 2005 dataset.
+
+```{r}
+#| label: dict-iabr-2005
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iabr_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2005.dta"))
+
+# We create the data dictionary of the iabr 2005 dataset.
+iabr_2005 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iabr-2005
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iabr_2005)
+# Clean unused memory
+gc()
+
+```
+
+## India BR 2015
+
+Here we check the data dictionary of India BR 2015 dataset.
+
+**NOTE:** We are unable to show this due to insufficient computational resources.
+
+```{r}
+#| eval: false
+#| label: dict-iabr-2015
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iabr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2015.dta"))
+
+# We create the data dictionary of the iabr 2015 dataset.
+iabr_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| eval: false
+#| label: remove-iabr-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iabr_2015)
+# Clean unused memory
+gc()
+
+```
+
+## India BR 2019
+
+Here we check the data dictionary of India BR 2019 dataset.
+
+**NOTE:** We are unable to show this due to lack of computing memory.
+
+```{r}
+#| eval: false
+#| label: dict-iabr-2019
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iabr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2019.dta"))
+
+# We create the data dictionary of the iabr 2019 dataset.
+iabr_2019 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| eval: false
+#| label: remove-iabr-2019
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iabr_2019)
+# Clean unused memory
+gc()
+
+```
+
+# India Individual Recode data dictionary
+
+Here we check the variable details of the India individual recode (IR) dataset. We will view the data dictionaries round-wise. As the datasets are huge is size, we import them, create the data dictionary, remove them from memory and continue with the next one.
+
+## India IR 1992
+
+Here we check the data dictionary of India IR 1992 dataset.
+
+```{r}
+#| label: dict-iair-1992
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iair_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iair_1992.DTA"))
+
+# We create the data dictionary of the iair 1992 dataset.
+iair_1992 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iair-1992
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iair_1992)
+# Clean unused memory
+gc()
+
+```
+
+## India IR 1998
+
+Here we check the data dictionary of India IR 1998 dataset.
+
+```{r}
+#| label: dict-iair-1998
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iair_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iair_1998.dta"))
+
+# We create the data dictionary of the iair 1998 dataset.
+iair_1998 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iair-1998
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iair_1998)
+# Clean unused memory
+gc()
+
+```
+
+## India IR 2005
+
+Here we check the data dictionary of India IR 2005 dataset.
+
+```{r}
+#| label: dict-iair-2005
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iair_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2005.dta"))
+
+# We create the data dictionary of the iair 2005 dataset.
+iair_2005 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iair-2005
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iair_2005)
+# Clean unused memory
+gc()
+
+```
+
+## India IR 2015
+
+Here we check the data dictionary of India IR 2015 dataset.
+
+**NOTE:** We are unable to show this due to insufficient computational resources.
+
+```{r}
+#| eval: false
+#| label: dict-iair-2015
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iair_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2015.dta"))
+
+# We create the data dictionary of the iair 2015 dataset.
+iair_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| eval: false
+#| label: remove-iair-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iair_2015)
+# Clean unused memory
+gc()
+
+```
+
+## India IR 2019
+
+Here we check the data dictionary of India IR 2019 dataset.
+
+**NOTE:** We are unable to show this due to insufficient computational resources.
+
+```{r}
+#| eval: false
+#| label: dict-iair-2019
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iair_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2019.dta"))
+
+# We create the data dictionary of the iair 2019 dataset.
+iair_2019 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| eval: false
+#| label: remove-iair-2019
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iair_2019)
+# Clean unused memory
+gc()
+
+```
+
+# India Household Recode data dictionary
+
+Here we check the variable details of the India household recode (HR) dataset. We will view the data dictionaries round-wise. As the datasets are huge is size, we import them, create the data dictionary, remove them from memory and continue with the next one.
+
+## India HR 1992
+
+Here we check the data dictionary of India HR 1992 dataset.
+
+```{r}
+#| label: dict-iahr-1992
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iahr_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_1992.DTA"))
+
+# We create the data dictionary of the iahr 1992 dataset.
+iahr_1992 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iahr-1992
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iahr_1992)
+# Clean unused memory
+gc()
+
+```
+
+## India HR 1998
+
+Here we check the data dictionary of India HR 1998 dataset.
+
+```{r}
+#| label: dict-iahr-1998
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iahr_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_1998.dta"))
+
+# We create the data dictionary of the iahr 1998 dataset.
+iahr_1998 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iahr-1998
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iahr_1998)
+# Clean unused memory
+gc()
+
+```
+
+## India HR 2005
+
+Here we check the data dictionary of India HR 2005 dataset.
+
+```{r}
+#| label: dict-iahr-2005
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iahr_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2005.dta"))
+
+# We create the data dictionary of the iahr 2005 dataset.
+iahr_2005 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iahr-2005
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iahr_2005)
+# Clean unused memory
+gc()
+
+```
+
+## India HR 2015
+
+Here we check the data dictionary of India HR 2015 dataset.
+
+**NOTE:** We are unable to show this due to insufficient computational resources.
+
+```{r}
+#| eval: false
+#| label: dict-iahr-2015
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iahr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2015.dta"))
+
+# We create the data dictionary of the iahr 2015 dataset.
+iahr_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| eval: false
+#| label: remove-iahr-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iahr_2015)
+# Clean unused memory
+gc()
+
+```
+
+## India HR 2019
+
+Here we check the data dictionary of India HR 2019 dataset.
+
+**NOTE:** We are unable to show this due to insufficient computational resources.
+
+```{r}
+#| eval: false
+#| label: dict-iahr-2019
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iahr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2019.dta"))
+
+# We create the data dictionary of the iahr 2019 dataset.
+iahr_2019 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| eval: false
+#| label: remove-iahr-2019
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iahr_2019)
+# Clean unused memory
+gc()
+
+```
+
+# India Person Recode data dictionary
+
+Here we check the variable details of the India person recode (PR) dataset. We will view the data dictionaries round-wise. As the datasets are huge is size, we import them, create the data dictionary, remove them from memory and continue with the next one.
+
+## India PR 1992
+
+Here we check the data dictionary of India PR 1992 dataset.
+
+```{r}
+#| label: dict-iapr-1992
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iapr_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_1992.DTA"))
+
+# We create the data dictionary of the iapr 1992 dataset.
+iapr_1992 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iapr-1992
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iapr_1992)
+# Clean unused memory
+gc()
+
+```
+
+## India PR 1998
+
+Here we check the data dictionary of India PR 1998 dataset.
+
+```{r}
+#| label: dict-iapr-1998
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iapr_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_1998.dta"))
+
+# We create the data dictionary of the iapr 1998 dataset.
+iapr_1998 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iapr-1998
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iapr_1998)
+# Clean unused memory
+gc()
+
+```
+
+## India PR 2005
+
+Here we check the data dictionary of India PR 2005 dataset.
+
+```{r}
+#| label: dict-iapr-2005
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iapr_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_2005.dta"))
+
+# We create the data dictionary of the iapr 2005 dataset.
+iapr_2005 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iapr-2005
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iapr_2005)
+# Clean unused memory
+gc()
+
+```
+
+## India PR 2015
+
+Here we check the data dictionary of India PR 2015 dataset.
+
+```{r}
+#| label: dict-iapr-2015
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iapr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_2015.dta"))
+
+# We create the data dictionary of the iapr 2015 dataset.
+iapr_2015 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iapr-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iapr_2015)
+# Clean unused memory
+gc()
+
+```
+
+## India PR 2019
+
+Here we check the data dictionary of India PR 2019 dataset.
+
+```{r}
+#| label: dict-iapr-2019
+#| echo: false
+#| output: true
+
+# Import the dataset.
+iapr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_2019.dta"))
+
+# We create the data dictionary of the iapr 2019 dataset.
+iapr_2019 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-iapr-2019
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(iapr_2019)
+# Clean unused memory
+gc()
+
+```
+
+
+
+
+
+
+
+
+
+
+

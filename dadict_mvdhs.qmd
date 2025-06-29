@@ -1,0 +1,369 @@
+---
+title: "Maldives DHS data dictionary"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 10, 
+  # font.family = "Helvetica",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+We document the variable labels and other contents of all variables across all the Maldives Demographic and Health Survey (DHS) datasets here. This will be primary document for viewing what variables are available for use in PhD research. We check the variable labels before running the pooling code in "daprep-v01_mvdhs.R".
+
+This document contains variable details for the following Maldives DHS surveys:
+
+```{r}
+#| label: data-import
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the mvbr nested tibble
+mvbr_raw <- read_rds(
+  file = here("website_data", "mvbr1_nest0.rds")
+)
+# Importing the mvir nested tibble
+mvir_raw <- read_rds(
+  file = here("website_data", "mvir1_nest0.rds")
+)
+# Importing the mvhr nested tibble
+mvhr_raw <- read_rds(
+  file = here("website_data", "mvhr1_nest0.rds")
+)
+# Importing the mvpr nested tibble
+mvpr_raw <- read_rds(
+  file = here("website_data", "mvpr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "Maldives DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+mvbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from mvhr_tmp_intro
+  left_join(
+    mvhr_raw |> select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from mvpr_tmp_intro
+  left_join(
+    mvpr_raw |> select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+
+```{r}
+#| label: fn-gen-dadict
+#| echo: false
+#| output: false
+
+# We create a function for generating basic data dictionary
+dadict_basic <- function(df) {
+  df |> 
+  # create data dictionary
+  labelled::lookfor(details = "basic") |> 
+  # keep only the required columns
+  select(-c(levels, value_labels)) |> 
+  # for correctly viewing the range column in data dictionary
+  labelled::convert_list_columns_to_character()
+}
+
+```
+
+# Maldives Birth History Recode data dictionary
+
+Here we check the variable details of the Maldives birth history recode (BR) dataset. We will view the data dictionaries round-wise.
+
+## Maldives BR 2009
+
+Here we check the data dictionary of Maldives BR 2009 dataset.
+
+```{r}
+#| label: dict-mvbr-2009
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvbr 2009 dataset.
+mvbr_raw$mvbr_data$mvbr_2009 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Maldives BR 2016
+
+Here we check the data dictionary of Maldives BR 2016 dataset.
+
+```{r}
+#| label: dict-mvbr-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvbr 2016 dataset.
+mvbr_raw$mvbr_data$mvbr_2016 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Maldives Individual Recode data dictionary
+
+Here we check the variable details of the Maldives individual recode (IR) dataset. Note that, the individual recode files are generally huge in size. Therefore, we will import the original STATA datasets directly, prepare the data dictionaries and clear them from memory before proceeding with the next dataset. We will view the data dictionaries round-wise.
+
+## Maldives IR 2009
+
+Here we check the data dictionary of Maldives IR 2009 dataset.
+
+```{r}
+#| label: dict-mvir-2009
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvir 2009 dataset.
+mvir_raw$mvir_data$mvir_2009 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-mvir-2009
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(mvir_2009)
+# Clean unused memory
+gc()
+
+```
+
+## Maldives IR 2016
+
+Here we check the data dictionary of Maldives IR 2016 dataset.
+
+```{r}
+#| label: dict-mvir-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvir 2016 dataset.
+mvir_raw$mvir_data$mvir_2016 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-mvir-2016
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(mvir_2016)
+# Clean unused memory
+gc()
+
+```
+
+# Maldives Household Recode data dictionary
+
+Here we check the variable details of the Maldives household recode (HR) dataset. We will view the data dictionaries round-wise.
+
+## Maldives HR 2009
+
+Here we check the data dictionary of Maldives HR 2009 dataset.
+
+```{r}
+#| label: dict-mvhr-2009
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvhr 2009 dataset.
+mvhr_raw$mvhr_data$mvhr_2009 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Maldives HR 2016
+
+Here we check the data dictionary of Maldives HR 2016 dataset.
+
+```{r}
+#| label: dict-mvhr-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvhr 2016 dataset.
+mvhr_raw$mvhr_data$mvhr_2016 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Maldives Person Recode data dictionary
+
+Here we check the variable details of the Maldives person recode (PR) dataset. We will view the data dictionaries round-wise.
+
+## Maldives PR 2009
+
+Here we check the data dictionary of Maldives PR 2009 dataset.
+
+```{r}
+#| label: dict-mvpr-2009
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvpr 2009 dataset.
+mvpr_raw$mvpr_data$mvpr_2009 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Maldives PR 2016
+
+Here we check the data dictionary of Maldives PR 2016 dataset.
+
+```{r}
+#| label: dict-mvpr-2016
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvpr 2016 dataset.
+mvpr_raw$mvpr_data$mvpr_2016 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

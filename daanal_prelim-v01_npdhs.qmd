@@ -1,0 +1,754 @@
+---
+title: "NPDHS preliminary data analysis"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+    
+    # Data i/o
+    "here",                 # relative file path
+    "rio",                  # file import-export
+    
+    # Data manipulation
+    "janitor",              # data cleaning fns
+    "haven",                # stata, sas, spss data io
+    "labelled",             # var labelling
+    "readxl",               # excel sheets
+    # "scales",               # to change formats and units
+    "skimr",                # quick data summary
+    "broom",                # view model results
+    
+    # Data analysis
+    "DHS.rates",            # demographic rates for dhs-like surveys
+    "GeneralOaxaca",        # BO decomposition for non-linear
+    "survey",               # apply survey weights
+    "survival",             # base pkg for survival analysis
+    
+    # Analysis output
+    "gt",
+    # "modelsummary",          # output summary tables
+    "gtsummary",            # output summary tables
+    "flextable",            # creating tables from objects
+    "officer",              # editing in office docs
+    
+    # R graph related packages
+    "ggstats",              # graph of regression estimates
+    "RColorBrewer",         # graph themes
+    # "scales",
+    "patchwork",            # combining graphs
+    
+    # Misc packages
+    "tidyverse",            # Data manipulation iron man
+    "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+ 
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+    font.size = 12, 
+    # font.family = "Aptos",
+    theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+In this document we do preliminary analysis of examining infant mortality clustering under mothers in the pooled Nepal Demographic and Health Survey (NPDHS) datasets. This document has selected code for analysis and the full spectrum of preliminary analysis are available in the "npdhs_datanal1.R" script file.
+
+## Data source
+
+Here we use the pooled dataset of six existing rounds of Nepal Demographic and Health Survey (NPDHS) conducted during 1996, 2001, 2006, 2011, 2016 and 2022. The NPDHS implemented a multi-stage cluster sampling design. Details regarding the sample design, survey instruments, informed consent, training of interviewers and other fieldwork officers, data collection and processing, and response rates are available in the final report of the respective surveys.
+
+We pooled the raw birth histories of ever-married women in the reproductive age group (15-49 years) across all the pre-specified rounds. We manually harmonized all required datasets so that our study variables have consistent categorisation and label codes across the surveys. The pooled dataset harmonization and pooling codes are in "npdhsv2_daprep.R". Also, we have a variable harmonization documentation called "npdhs_datapl1_pre.html" which shows how the variable labels and label codes vary across the raw NPDHS datasets.
+
+Now, please note that the following Nepal DHS surveys were pooled:
+
+```{r}
+#| label: data-import-temp
+#| echo: false
+#| output: false
+
+# Importing the npbr nested tibble
+npbr1_tmp_intro <- read_rds(
+    file = here("website_data", "npbr1_nest0.rds")
+)
+# Importing the nphr nested tibble
+nphr1_tmp_intro <- read_rds(
+    file = here("website_data", "nphr1_nest0.rds")
+)
+# Importing the nppr nested tibble
+nppr1_tmp_intro <- read_rds(
+    file = here("website_data", "nppr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "Nepal DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+npbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |> 
+    # Join vars from nphr_tmp_intro
+    left_join(
+        nphr1_tmp_intro |> select(svy_year, n_households),
+        by = join_by(svy_year)
+    ) |> 
+    # Join vars from nppr_tmp_intro
+    left_join(
+        nppr1_tmp_intro |> select(svy_year, n_persons),
+        by = join_by(svy_year)
+    ) |> 
+    # convert nested tibble to simple tibble
+    unnest(cols = c()) |> 
+    mutate(
+        ccode = row_number(), 
+        .before = ctr_name
+    ) |> 
+    # convert to flextable object
+    qflextable() |> 
+    theme_vanilla() |> 
+    align(align = "left", part = "all")
+
+```
+
+**Note that** the information on birth histories was available for 164,761 children. The current study utilised pooled retrospective birth histories of children born between 1970 to 2022 (till the interview date). Therefore, the analytical sample size of this study is 163,544 children.
+
+```{r}
+#| label: just-another-chunk01
+#| echo: false
+#| output: false
+
+# We remove the (.)_tmp_intro nested tibbles from the environment as they are not 
+# required further
+rm(list = c("npbr1_tmp_intro", "nphr1_tmp_intro", "nppr1_tmp_intro"))
+
+# Clean unused memory using garbage collector
+gc()
+
+```
+
+## Study variables
+
+We use the following variables for the pooled data analysis:
+
+-   **Dependent variable**
+    -   infantd = Index child died during infancy period (0-11 months)
+-   **Main Independent variable**
+    -   sibsurv_nmv = Survival status of preceding child (Death scarring)
+    -   binterval_3c_nmv_opp = Birth interval preceding to index child
+-   **Independent variables** \[CHILD LEVEL\]
+    -   cyob10y_opp = Birth cohort of index child
+    -   bord_c = Birth order of index child
+    -   sex_fm = Gender of index child
+    -   season = Season during birth
+-   **Independent variables** \[MOTHER/PARENT LEVEL\]
+    -   ~~myob_opp = Birth cohort of mother~~
+    -   macb_c_opp = Mother's age during birth of index child
+    -   medu_opp = Mother's Level of education
+    -   fedu_opp = Father's level of education
+-   **Independent variables** \[HOUSEHOLD LEVEL\]
+    -   religion = Religion
+    -   nat_lang = Native language of respondent
+    -   wi_qt_opp = Household wealth quintile
+    -   ~~hhgen_2c_opp = Generations in household~~
+    -   hhstruc_opp = Household structure
+    -   head_sex_fm = Sex of HH head
+-   **Independent variables** \[COMMUNITY LEVEL\]
+    -   por = Place of residence of the household
+    -   ecoreg = Ecological region
+
+*Note: (a) Crossed names indicates variable not included.*
+
+## Statistical methods
+
+We first conducted descriptive analysis to examine the absolute and percentage distribution of births by background characteristics in the pooled dataset. Next we explored the distribution of infant mortality by birth cohorts and survey periods. Also, we examined the trend in childhood mortality (neonatal, infant and under-five mortality) rates across the Nepal DHS survey rounds. Next, we performed bivariate analysis to assess the unadjusted relationship between infant mortality and the main independent variables using the chi-square test for association. To estimate the adjusted associations, we applied multivariable logistic regression models on the pooled dataset covering 1970-2022.
+
+# Data import
+
+We will directly import the prepared dataset for analysis here. The code for dataset preparation is in the "npdhsv2_daprep.R" script file.
+
+```{r}
+#| label: data-import
+#| echo: true
+#| output: true
+
+# Importing the pooled npbr tibble
+npbr1_pl1 <- read_rds(
+    file = here("website_data", "npbr1_pl1.rds")
+)
+
+# Prepare the survey weighted dataset
+options(survey.lonely.psu = "adjust")
+options(survey.adjust.domain.lonely = T)
+svy_npbr1_pl1 <- svydesign(
+    data = npbr1_pl1,
+    ids = ~ as.numeric(svy_psu),
+    strata = ~ as.numeric(svy_strata),
+    weight = ~ svy_wwgt6,
+    probs = NULL,
+    nest = T
+)
+
+```
+
+# Descriptive analysis
+
+## Sample distribution of births
+
+We will check the distribution of births by background characteristics in Nepal 1970-2022.
+
+```{r}
+#| label: univariate-dist-ut
+#| echo: false
+#| output: false
+
+# First we create the variable list
+vlist_t1 <- c("sibsurv_all_nmv", "sibsurv_3c_nmv", "binterval_3c_nmv_opp", 
+              "cyob10y_opp", "bord_c", "sex_fm", "season", "macb_c_opp", 
+              "medu_opp", "pedu_opp", "religion", "nat_lang", "wi_qt_opp", 
+              "hhstruc_opp", "head_sex", "por", "ecoreg")
+
+# Univariate table - unweighted
+t1_ut <- npbr1_pl1 |> 
+    tbl_summary(
+        include = all_of(vlist_t1),
+        digits = everything() ~ c(0, 1)
+    ) |>
+    # Table title
+    # modify_caption("**Table S1: Sample distribution of births by background characteristics in Nepal 1970-2022**") |> 
+    bold_labels()
+t1_ut
+
+```
+
+```{r}
+#| label: univariate-dist-wt
+#| echo: false
+#| output: false
+
+# Univariate table - weighted
+t1_wt <- svy_npbr1_pl1 |> 
+    tbl_svysummary(
+        include = all_of(vlist_t1),
+        # statistic = everything() ~ "{p}%",
+        digits = everything() ~ c(0, 1)
+    ) |> 
+    bold_labels()
+t1_wt
+
+```
+
+```{r}
+#| label: tbl-univariate-dist-utwt
+#| echo: true
+#| output: true
+#| tbl-cap: "Distribution of births by background characteristics in Nepal 1970-2022"
+
+# Now, we merge the unweighted and weighted tables and view it
+t1 <- tbl_merge(
+    tbls = list(t1_wt, t1_ut),
+    tab_spanner = c("**Weighted**", "**Unweighted**")
+) |> 
+    modify_footnote(
+        stat_0_1 ~ "n (%) = Distribution and column percentage (weighted);",
+        stat_0_2 ~ "n (%) = Distribution and column percentage (unweighted)"
+    ) |> 
+  as_flex_table() |> 
+  theme_vanilla()
+t1
+
+```
+
+@tbl-univariate-dist-utwt presents the sample characteristics of all births from the complete birth histories of Nepal from 1970 to 2022. The distribution of our two main explanatory variables, shows that there were 11% children whose previous sibling had died before their birth. Most children in Nepal had a preceding birth interval of 24 months or more. Among the children considered in the study, the majority were from the 1990-99 birth cohort (35.5%), followed by the 2000-09 cohort (23.1%) and the 1980-89 cohort (22.7%). More than half of the children were male (51.2%) and belonged to the first or second birth order (56.4%).
+
+Almost 38% of children were born when their mothers were aged 20-24 years, followed by 24% whose mothers were less than 20 years old. Nearly 71% of mothers and 36% of fathers had no formal schooling. Most households practised Hinduism (84.8%), and Nepali was the primary language spoken in almost 46% of households. The majority of children lived in rural areas (75.7%) and in the Terai region (52.7%), followed by the Hill region (40%) and the Mountain region (7.3%).
+
+## Distribution of infant deaths by birth cohort and survey period
+
+Here we prepare the data of infant mortality by birth cohort and then by survey period. Using the data we prepare the graph of distribution of infant deaths by birth cohort and survey period.
+
+```{r}
+#| label: data-infantd-birth-cohort
+#| echo: false
+#| output: false
+#| warning: false
+
+# First, we create the gtsummary table
+f1_cohort_gtsum <- svy_npbr1_pl1 |> 
+    tbl_svysummary(
+        include = cyob5y,
+        by = infantd,
+        statistic = all_categorical() ~ "{p}",
+        digits = all_categorical() ~ 1,
+        percent = "row"
+    ) 
+
+# Second, we convert the gtsummary object to tibble.
+f1_cohort_tibble <- f1_cohort_gtsum |> 
+    as_tibble() |> 
+    slice(-1) |> 
+    rename(
+        "birth_cohort" = 1,
+        "pct_alive" = 2,
+        "pct_dead" = 3
+    ) |> 
+    mutate(
+        birth_cohort = birth_cohort |> fct() |> fct_rev(),
+        across(.cols = c(pct_alive, pct_dead), as.numeric)
+    )
+f1_cohort_tibble
+
+```
+
+```{r}
+#| label: data-infantd-survey-period
+#| echo: false
+#| output: false
+#| warning: false
+
+# First, we create the gtsummary table
+f1_period_gtsum <- svy_npbr1_pl1 |> 
+    tbl_svysummary(
+        include = year,
+        by = infantd,
+        statistic = all_categorical() ~ "{p}",
+        digits = all_categorical() ~ 1,
+        percent = "row"
+    )
+
+# Convert the gtsummary object to tibble
+f1_period_tibble <- f1_period_gtsum |> 
+    as_tibble() |> 
+    slice(-1) |> 
+    rename(
+        "survey_year" = 1,
+        "pct_alive" = 2,
+        "pct_dead" = 3
+    ) |> 
+    mutate(
+        survey_year = survey_year |> fct() |> fct_rev(),
+        across(.cols = c(pct_alive, pct_dead), as.numeric)
+    )
+f1_period_tibble
+
+```
+
+```{r}
+#| label: fig-infantd-birth-cohort
+#| echo: true
+#| output: true
+#| fig-cap: "Lollipop chart showing the weighted percentage of infant deaths by birth cohort in Nepal DHS"
+
+# Let's create the lollipop chart.
+fig1_cohort <- f1_cohort_tibble |> 
+    ggplot(aes(y = birth_cohort, x = pct_dead)) +
+    
+    # adding line segment or lollipop stick
+    geom_segment(
+        aes(x = 0, xend = pct_dead, y = birth_cohort, yend = birth_cohort),
+        linewidth = 2,
+        colour = "green4"
+    ) +
+    
+    # adding the point or lollipop head
+    geom_point(
+        shape = 21,
+        size = 15,
+        fill = "white",
+        colour = "green4"
+    ) +
+    
+    # adding the percentage text
+    geom_text(
+        aes(label = pct_dead),
+        fontface = "bold"
+    ) +
+    
+    labs(
+        # title = "(A) By Birth cohort",
+        x = "Weighted percentage of children",
+        y = "Birth cohort",
+    ) +
+    
+    theme(
+        plot.title = element_text(size = rel(1.3), face = "bold"),
+        # plot.subtitle = element_text(size = rel(1.2)),
+        axis.title.x = element_text(size = rel(1.2)),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_text(size = rel(1.2)),
+        axis.text.y = element_text(size = rel(1.2))
+    )
+fig1_cohort
+
+```
+
+```{r}
+#| label: fig-infantd-survey-period
+#| echo: true
+#| output: true
+#| fig-cap: "Lollipop chart showing the weighted percentage of infant deaths by survey period in Nepal DHS"
+
+fig1_period <- f1_period_tibble |> 
+    ggplot(aes(x = pct_dead, y = survey_year)) +
+    
+    # adding the line
+    geom_segment(
+        aes(x = 0, xend = pct_dead, y = survey_year, yend = survey_year),
+        linewidth = 3,
+        colour = "orange3"
+    ) +
+    
+    # adding the point
+    geom_point(
+        shape = 21,
+        size = 18,
+        fill = "white",
+        colour = "orange3"
+    ) +
+    
+    # adding the percentage label
+    geom_text(
+        aes(label = pct_dead),
+        fontface = "bold"
+    ) +
+    
+    labs(
+        # title = "(B) By Survey period",
+        x = "Weighted percentage of children",
+        y = "Survey period",
+    ) +
+    
+    theme(
+        plot.title = element_text(size = rel(1.3), face = "bold"),
+        axis.title.x = element_text(size = rel(1.2)),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_text(size = rel(1.2)),
+        axis.text.y = element_text(size = rel(1.2))
+    )
+fig1_period
+
+```
+
+@fig-infantd-birth-cohort and @fig-infantd-survey-period further highlights the temporal shifts in infant mortality across different birth cohorts and survey periods. The results indicate a steady decline in infant mortality over time, with higher mortality rates in earlier birth cohorts (1970–1979), which gradually decreased in the subsequent cohorts. The most recent cohorts (2010 and later) exhibit the lowest mortality rates, reflecting improvements in child survival over the decades.
+
+A similar trend can be observed for infant mortality in the survey rounds. Proportion of children who died during infancy were higher during the 1996 round, which continued to decrease in the recent 2022 round.
+
+## Childhood mortality rates by survey rounds
+
+Here we calculate mortality rates across the Nepal DHS survey rounds using the DHS.Rates R package. First we prepared the dataset of childhood mortality rates and then we drew the graph.
+
+```{r}
+#| label: data-chmort-survey-round-1
+#| echo: false
+#| output: false
+#| warning: false
+
+# First, we will prepare nested tibble by survey round.
+npbrpl1_svyround_nest <- npbr1_pl1 |> 
+    nest(.by = year) 
+
+# Second, we calculate the child mortality rates for each tibble
+npbrpl1_svyround_nest <- npbrpl1_svyround_nest |> 
+    mutate(mort_rates = map(data, \(df) {
+        df |> 
+            chmort(
+                Cluster = "svy_psu", 
+                Strata = "svy_strata", 
+                Weight = "svy_wwgt6"
+            ) |> 
+            bind_cols(tibble(
+                mort_stat = c("nnmr", "pnnmr", "imr", "cmr", "u5mr")
+            )) |> 
+            mutate(mort_stat = fct(
+                mort_stat, levels = c("nnmr", "pnnmr", "imr", "cmr", "u5mr")
+            )) |> 
+            relocate(mort_stat, .before = 1) |> 
+            rename_with(tolower)
+    }))
+
+```
+
+```{r}
+#| label: data-chmort-survey-round-2
+#| echo: false
+#| output: false
+
+# Now we unnest the tibble of mortality rates
+npbrpl1_mortrates <- npbrpl1_svyround_nest |> 
+    select(-data) |> 
+    unnest(cols = mort_rates)
+npbrpl1_mortrates
+
+```
+
+```{r}
+#| label: fig-chmort-survey-round
+#| echo: true
+#| output: true
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Connected dot plot showing the childhood mortality rates by Nepal DHS survey rounds" 
+
+# Now we prepare the connected scatter plots of nnmr, imr and u5mr
+fig2_svyround <- npbrpl1_mortrates |> 
+    # filter the mortality rates
+    filter(mort_stat %in% c("nnmr", "imr", "u5mr")) |> 
+    # prepare the graph
+    ggplot(aes(x = year, y = r, colour = mort_stat)) +
+    # add line
+    geom_path(linewidth = 1, alpha = 0.9) +
+    # add point
+    geom_point(size = 16, alpha = 0.9) +
+    # add label
+    geom_text(
+        aes(label = round(r, 0)), 
+        colour = "white",
+        fontface = "bold"
+    ) +
+    # give breaks according to survey round
+    scale_x_continuous(breaks = c(1996, 2001, 2006, 2011, 2016, 2022)) +
+    scale_colour_discrete(
+        label = c("Neonatal mortality rate", "Infant mortality rate", 
+                  "Under-five mortality rate")
+    ) +
+    
+    # add labels
+    labs(
+        title = "Trends in Childhood mortality rates in Nepal DHS survey rounds",
+        x = "Survey round",
+        y = "Mortality rate (per 1000 live births)",
+        # This removes the legend title 
+        colour = NULL
+    ) +
+    # Modify the axis theme elements
+    theme(
+        plot.title = element_text(size = rel(1.4), face = "bold"),
+        axis.title.x = element_text(size = rel(1.2)),
+        axis.text.x = element_text(size = rel(1.2)),
+        axis.title.y = element_text(size = rel(1.2)),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()
+    ) +
+    # Modify the legend theme elements
+    theme(
+        # legend.key.size = unit(1, "points"),
+        legend.position = "top",
+        legend.text = element_text(size = rel(0.9))
+    ) +
+    guides(color = guide_legend(override.aes = list(size = 8)))
+fig2_svyround    
+
+```
+
+@fig-chmort-survey-round also shows the childhood mortality rates (per 1000 live births) have decreased across the survey rounds. This pattern stands true for neonatal, infant and under-five mortalities. Additionally, this trend corroborates with the declining infant mortality trend observed in @fig-infantd-birth-cohort and @fig-infantd-survey-period.
+
+# Bivariate analysis
+
+## Crosstab of infant mortality by background characteristics
+
+Here we will check the crosstab tables of infant mortality with the independent variables using row percentages and check their association with the chi-square test.
+
+```{r}
+#| label: tbl-bivariate-infantd-wt
+#| echo: true
+#| output: true
+#| warning: false
+#| tbl-cap: "Distribution of infant deaths by background characteristics among Nepalese children from 1970-2022"
+
+# Creating the var list
+vlist_t2 <- c("infantd", "sibsurv_3c", "binterval_3c_opp", 
+              "cyob10y_opp", "bord_c", "sex_fm", "season", "macb_c_opp", 
+              "medu_opp", "pedu_opp", "religion", "nat_lang", "wi_qt_opp", 
+              "hhstruc_opp", "head_sex", "por", "ecoreg")
+
+# Prepare the weighted gtsummary table
+t2_wt <- svy_npbr1_pl1 |> 
+  tbl_svysummary(
+    include = all_of(vlist_t2),
+    by = infantd,
+    percent = "row"
+  ) |> 
+  add_overall(statistic = ~ "{n}") |> 
+  add_p() |> 
+  
+  # hide the alive col
+  modify_column_hide(columns = stat_1) |> 
+  # Add extra header
+  modify_spanning_header(
+    c(stat_2, p.value) ~ "**Infant mortality (0-11 months)**"
+  ) |> 
+  modify_footnote(
+    all_stat_cols() ~ "n = Absolute distribution; % = Row percentage; Adjusted for sampling weights"
+  ) |> 
+  # styling
+  bold_labels() |> 
+  bold_p(t = 0.05) |> 
+  as_flex_table() |> 
+  theme_vanilla()
+t2_wt                           # view table
+
+```
+
+@tbl-bivariate-infantd-wt shows that among children whose preceding sibling died before their conception, 15% experienced infant mortality. Mortality was also higher for children whose previous sibling died after their conception. Infant mortality varied significantly across birth intervals, birth cohorts, and parental characteristics. Mortality was highest among children born within 18 months of a previous birth, with 21% experiencing infant mortality. In contrast, children born after between 25-29 years had the lowest mortality rate of 6.8%. Sex differences were minor, with female infant mortality at 7.7% and male mortality at 8.7%.
+
+# Multivariable analysis
+
+## Regression of infant deaths by background characteristics
+
+Here we will check the multivariable association of infant mortality with the independent variables by estimating logistic regression models. We run the weighted regression models by -
+
+-   Model 1: Without main independent variables.
+-   Model 2: With main independent variables.
+
+```{r}
+#| label: model-infantd-logit-1
+#| echo: false
+#| output: false
+
+# First we run the weighted regression model without main independent variables
+log_mdl1 <- svyglm(
+    infantd_01 ~ cyob10y_opp + bord_c + sex_fm + season + 
+        macb_c_opp + medu_opp + pedu_opp + religion +
+        nat_lang + wi_qt_opp + hhstruc_opp + head_sex + 
+        por + ecoreg,
+    design = svy_npbr1_pl1,
+    family = quasibinomial(link = "logit")
+)
+
+```
+
+```{r}
+#| label: table-infantd-logit-1
+#| echo: false
+#| output: false
+
+# Converting the regression model output using gtsummary
+t3_log_mdl1 <- log_mdl1 |> 
+    tbl_regression(exponentiate = T) |> 
+    add_glance_table(include = c(nobs, AIC, BIC)) |> 
+    add_vif(statistic = "GVIF") |> 
+    modify_spanning_header(
+        c(estimate, conf.low, p.value, GVIF) ~ "**Model-1**"
+    ) |> 
+    bold_labels() |> 
+    bold_p(t = 0.1)
+t3_log_mdl1
+
+```
+
+```{r}
+#| label: model-infantd-logit-2
+#| echo: false
+#| output: false
+
+# Second we run the weighted regression model with main independent variables
+log_mdl2 <- svyglm(
+    infantd_01 ~ sibsurv_3c + binterval_3c_opp + cyob10y_opp + bord_c +
+        sex_fm + season + macb_c_opp + medu_opp + pedu_opp + religion +
+        nat_lang + wi_qt_opp + hhstruc_opp + head_sex + 
+        por + ecoreg,
+    design = svy_npbr1_pl1,
+    family = quasibinomial(link = "logit")
+)
+
+```
+
+```{r}
+#| label: table-infantd-logit-2
+#| echo: false
+#| output: false
+
+# Converting the regression model output using gtsummary
+t3_log_mdl2 <- log_mdl2 |> 
+    tbl_regression(exponentiate = T) |> 
+    add_glance_table(include = c(nobs, AIC, BIC)) |> 
+    add_vif(statistic = "GVIF") |> 
+    modify_spanning_header(
+        c(estimate, conf.low, p.value, GVIF) ~ "**Model-2**"
+    ) |> 
+    bold_labels() |> 
+    bold_p(t = 0.1)
+t3_log_mdl2
+
+```
+
+```{r}
+#| label: tbl-infantd-logit-12
+#| echo: true
+#| output: true
+#| tbl-cap: "Multivariable association of infant mortality and the independent variables among children in Nepal 1970-2022"
+
+# We merge the model-1 and model-2 tables
+t3_log <- tbl_merge(
+    tbls = list(t3_log_mdl1, t3_log_mdl2),
+    tab_spanner = c("**Model-1**", "**Model-2**")
+) |> 
+    # ensure that estimates of sibsurv_3c and binterval_3c_opp are at the top
+    modify_table_body(
+        ~ .x |> 
+            arrange(desc(variable %in% c("sibsurv_3c", "binterval_3c_opp")))
+    )
+# Now we view the table
+t3_log |> 
+  as_flex_table() |> 
+  fontsize(size = 9, part = "all") |> 
+  theme_vanilla()
+
+```
+
+@tbl-infantd-logit-12 presents the results of the logistic regression analysis, showing key factors associated with infant mortality. Nepalese children whose preceding sibling had died before their conception had 1.86 times higher odds of experiencing infant mortality. Short birth intervals, particularly those under 18 months, were associated with a significantly higher risk, with mortality odds 2.51 times higher than for births with a preceding interval of 24 months or longer.
+
+## START FROM HERE
+
+UPCOMING TASKS:
+
+-   Run survival regression models and check the result.
+
+-   Check if frailty survival regression models can be run.
+
+-   Check and apply the evalue package.
+
+TO BE CONTINUED ...

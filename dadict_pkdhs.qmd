@@ -1,0 +1,542 @@
+---
+title: "Pakistan DHS data dictionary"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "hroom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 10, 
+  # font.family = "Helvetica",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+We document the variable labels and other contents of all variables across all the Pakistan Demographic and Health Survey (DHS) datasets here. This will be primary document for viewing what variables are available for use in PhD research. We check the variable labels before running the pooling code in "daprep-v01_pkdhs.R". 
+
+This document contains variable details for the following Pakistan DHS surveys:
+
+```{r}
+#| label: data-import
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the pkbr nested tibble
+pkbr_raw <- read_rds(
+  file = here("website_data", "pkbr1_nest0.rds")
+)
+# Importing the pkir nested tibble
+pkir_raw <- read_rds(
+  file = here("website_data", "pkir1_nest0.rds")
+)
+# Importing the pkhr nested tibble
+pkhr_raw <- read_rds(
+  file = here("website_data", "pkhr1_nest0.rds")
+)
+# Importing the pkpr nested tibble
+pkpr_raw <- read_rds(
+  file = here("website_data", "pkpr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "Pakistan DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+pkbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from pkhr_tmp_intro
+  left_join(
+    pkhr_raw |> select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from pkpr_tmp_intro
+  left_join(
+    pkpr_raw |> select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+
+```{r}
+#| label: fn-gen-dadict
+#| echo: false
+#| output: false
+
+# We create a function for generating basic data dictionary
+dadict_basic <- function(df) {
+  df |> 
+  # create data dictionary
+  labelled::lookfor(details = "basic") |> 
+  # keep only the required columns
+  select(-c(levels, value_labels)) |> 
+  # for correctly viewing the range column in data dictionary
+  labelled::convert_list_columns_to_character()
+}
+
+```
+
+# Pakistan Birth History Recode data dictionary
+
+Here we check the variable details of the Pakistan birth history recode (BR) dataset. We will view the data dictionaries round-wise.
+
+## Pakistan BR 1990
+
+Here we check the data dictionary of Pakistan BR 1990 dataset.
+
+```{r}
+#| label: dict-pkbr-1990
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkbr 1990 dataset.
+pkbr_raw$pkbr_data$pkbr_1990 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan BR 2006
+
+Here we check the data dictionary of Pakistan BR 2006 dataset.
+
+```{r}
+#| label: dict-pkbr-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkbr 2006 dataset.
+pkbr_raw$pkbr_data$pkbr_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan BR 2012
+
+Here we check the data dictionary of Pakistan BR 2012 dataset.
+
+```{r}
+#| label: dict-pkbr-2012
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkbr 2012 dataset.
+pkbr_raw$pkbr_data$pkbr_2012 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan BR 2017
+
+Here we check the data dictionary of Pakistan BR 2017 dataset.
+
+```{r}
+#| label: dict-pkbr-2017
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkbr 2017 dataset.
+pkbr_raw$pkbr_data$pkbr_2017 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Pakistan Individual Recode data dictionary
+
+Here we check the variable details of the Pakistan individual recode (IR) dataset. Note that, the individual recode files are generally huge in size. Therefore, we will import the original STATA datasets directly, prepare the data dictionaries and clear them from memory before proceeding with the next dataset. We will view the data dictionaries round-wise.
+
+## Pakistan IR 1990
+
+Here we check the data dictionary of Pakistan IR 1990 dataset.
+
+```{r}
+#| label: dict-pkir-1990
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkir 1990 dataset.
+pkir_raw$pkir_data$pkir_1990 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-pkir-1990
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(pkir_1990)
+# Clean unused memory
+gc()
+
+```
+
+## Pakistan IR 2006
+
+Here we check the data dictionary of Pakistan IR 2006 dataset.
+
+```{r}
+#| label: dict-pkir-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkir 2006 dataset.
+pkir_raw$pkir_data$pkir_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-pkir-2006
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(pkir_2006)
+# Clean unused memory
+gc()
+
+```
+
+## Pakistan IR 2012
+
+Here we check the data dictionary of Pakistan IR 2012 dataset.
+
+```{r}
+#| label: dict-pkir-2012
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkir 2012 dataset.
+pkir_raw$pkir_data$pkir_2012 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-pkir-2012
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(pkir_2012)
+# Clean unused memory
+gc()
+
+```
+
+## Pakistan IR 2017
+
+Here we check the data dictionary of Pakistan IR 2017 dataset.
+
+```{r}
+#| label: dict-pkir-2017
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkir 2017 dataset.
+pkir_raw$pkir_data$pkir_2017 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-pkir-2017
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(pkir_2017)
+# Clean unused memory
+gc()
+
+```
+
+# Pakistan Household Recode data dictionary
+
+Here we check the variable details of the Pakistan household recode (HR) dataset. We will view the data dictionaries round-wise.
+
+## Pakistan HR 1990
+
+Here we check the data dictionary of Pakistan HR 1990 dataset.
+
+```{r}
+#| label: dict-pkhr-1990
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkhr 1990 dataset.
+pkhr_raw$pkhr_data$pkhr_1990 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan HR 2006
+
+Here we check the data dictionary of Pakistan HR 2006 dataset.
+
+```{r}
+#| label: dict-pkhr-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkhr 2006 dataset.
+pkhr_raw$pkhr_data$pkhr_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan HR 2012
+
+Here we check the data dictionary of Pakistan HR 2012 dataset.
+
+```{r}
+#| label: dict-pkhr-2012
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkhr 2012 dataset.
+pkhr_raw$pkhr_data$pkhr_2012 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan HR 2017
+
+Here we check the data dictionary of Pakistan HR 2017 dataset.
+
+```{r}
+#| label: dict-pkhr-2017
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkhr 2017 dataset.
+pkhr_raw$pkhr_data$pkhr_2017 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Pakistan Person Recode data dictionary
+
+Here we check the variable details of the Pakistan person recode (PR) dataset. We will view the data dictionaries round-wise.
+
+## Pakistan PR 1990
+
+Here we check the data dictionary of Pakistan PR 1990 dataset.
+
+```{r}
+#| label: dict-pkpr-1990
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkpr 1990 dataset.
+pkpr_raw$pkpr_data$pkpr_1990 |>
+  # generate basic data dictionary 
+  dadict_basic() |>  
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan PR 2006
+
+Here we check the data dictionary of Pakistan PR 2006 dataset.
+
+```{r}
+#| label: dict-pkpr-2006
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkpr 2006 dataset.
+pkpr_raw$pkpr_data$pkpr_2006 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan PR 2012
+
+Here we check the data dictionary of Pakistan PR 2012 dataset.
+
+```{r}
+#| label: dict-pkpr-2012
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkpr 2012 dataset.
+pkpr_raw$pkpr_data$pkpr_2012 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+## Pakistan PR 2017
+
+Here we check the data dictionary of Pakistan PR 2017 dataset.
+
+```{r}
+#| label: dict-pkpr-2017
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkpr 2017 dataset.
+pkpr_raw$pkpr_data$pkpr_2017 |>
+  # generate basic data dictionary 
+  dadict_basic() |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+
+
+
+
+
+
+
+

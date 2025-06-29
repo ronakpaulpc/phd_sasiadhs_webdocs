@@ -1,0 +1,2217 @@
+---
+title: "BDDHS data pooling pre-checks"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Data analysis
+  "DHS.rates",            # demographic rates for dhs-like surveys
+  "GeneralOaxaca",        # BO decomposition for non-linear
+  "survey",               # apply survey weights
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 10, 
+  # font.family = "Helvetica",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+Here we document the variable codes and labels of variables across all the Bangladesh Demographic and Health Survey (DHS) datasets. We check the variable labels and codes before running the pooling code in "daprep-v01_bddhs.R". We pool the following Bangladesh DHS surveys:
+
+```{r}
+#| label: data-import-temp
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the bdbr nested tibble
+bdbr1_tmp_intro <- read_rds(
+  file = here("website_data", "bdbr1_nest0.rds")
+)
+# Importing the bdir nested tibble
+bdir1_tmp_intro <- read_rds(
+  file = here("website_data", "bdir1_nest0.rds")
+)
+# Importing the bdhr nested tibble
+bdhr1_tmp_intro <- read_rds(
+  file = here("website_data", "bdhr1_nest0.rds")
+)
+# Importing the bdpr nested tibble
+bdpr1_tmp_intro <- read_rds(
+  file = here("website_data", "bdpr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "Bangladesh DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+bdbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from bdir_tmp_intro
+  left_join(
+    bdir1_tmp_intro |> 
+      mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+      select(c(year, n_women)),
+    by = join_by(svy_year == year)
+  ) |> 
+  # Join vars from bdhr_tmp_intro
+  left_join(
+    bdhr1_tmp_intro |> select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from bdpr_tmp_intro
+  left_join(
+    bdpr1_tmp_intro |> select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+```{r}
+#| label: just-another-chunk01
+#| echo: false
+#| output: false
+
+# We remove the (.)_tmp_intro nested tibbles from the environment as they are not 
+# required further
+rm(list = c("bdbr1_tmp_intro", 
+            "bdir1_tmp_intro", 
+            "bdhr1_tmp_intro", 
+            "bdpr1_tmp_intro"))
+
+# Clean unused memory using garbage collector
+gc()
+
+```
+
+We use the following variables for the pooled data analysis:
+
+-   **Dependent variable**
+    -   infantd = Index child died during infancy period (0-11 months)
+-   **Main Independent variable**
+    -   sibsurv_nmv = Survival status of preceding child (Death scarring)
+    -   binterval_3c_nmv_opp = Birth interval preceding to index child
+-   **Independent variables** \[CHILD LEVEL\]
+    -   cyob10y_opp = Birth cohort of index child
+    -   bord_c = Birth order of index child
+    -   sex_fm = Gender of index child
+    -   season = Season during birth
+-   **Independent variables** \[MOTHER/PARENT LEVEL\]
+    -   ~~myob_opp = Birth cohort of mother~~
+    -   macb_c_opp = Mother's age during birth of index child
+    -   medu_opp = Mother's Level of education
+    -   fedu_opp = Father's level of education
+-   **Independent variables** \[HOUSEHOLD LEVEL\]
+    -   religion = Religion
+    -   nat_lang = Native language of respondent
+    -   wi_qt_opp = Household wealth quintile
+    -   ~~hhgen_2c_opp = Generations in household~~
+    -   hhstruc_opp = Household structure
+    -   head_sex_fm = Sex of HH head
+-   **Independent variables** \[COMMUNITY LEVEL\]
+    -   por = Place of residence of the household
+    -   ecoreg = Ecological region
+
+*Note: (a) Crossed names indicates variable not included.*
+
+# Data import
+
+We will directly import the nested tibble here. The code for dataset preparation is in the "daprep-v01_bddhs.R" script file.
+
+```{r}
+#| label: data-import
+#| echo: true
+#| output: true
+#| cache: false
+
+# Here we import the tibbles to be used for dataset checking
+# Import the bdbr nested tibble
+bdbr1_pre_tmp0 <- read_rds(file = here("website_data", "bdbr1_nest0.rds"))
+# Import the bdhr nested tibble
+bdhr1_pre_tmp0 <- read_rds(file = here("website_data", "bdhr1_nest0.rds"))
+# Import the bdpr nested tibble
+bdpr1_pre_tmp0 <- read_rds(file = here("website_data", "bdpr1_nest0.rds"))
+
+```
+
+# Bangladesh BR dataset use for variable creation
+
+## Checking the Women's weight variable before harmonization
+
+We will check the formatting of the v005 women's weight variable before creating the pooled survey weight. For this we will use the labelled::look_for().
+
+```{r}
+#| label: create-dict-v005
+#| echo: true
+#| output: false
+
+# First we create the data dictionary of v005 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v005 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v005) |> 
+        look_for(details = "full") |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character() |> 
+        select(-c(levels:n_na))
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v005
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v005 variable across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v005)) |> 
+  select(-pos) 
+# Convert and view the tibble as flextable
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The women's weight variables are in numeric class and have no missing values. Therefore, we need not reformat them. Hence we directly use it for preparing the pooled survey weight. **NOTE that,** the women's weight for the Bangladesh 1993, 1996 and 1999 rounds have few unique values. This could be because there might have been fewer sampling units in the secondary stage.
+
+## Checking the ID variables before harmonization
+
+Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Bangladesh birth history recode (br) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+
+```{r}
+#| label: create-dict-bdbr-idvars
+#| echo: true
+#| output: false
+
+# We check the var type of ID vars in all bdbr datasets.
+# First we create a data dictionary of the bdbr datasets in nested tibble.
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |>
+  mutate(lookfor_idvars = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v001, v002, v003, bord, v021, v022, v023, v024) |> 
+        lookfor(details = "full") |> 
+        select(-c(levels:n_na)) |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character()
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-bdbr-idvars
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of variables to be used for ID creation across the bdbr rounds"
+
+# Now we unnest the tibble and output the pooled data dictionary 
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_idvars)) |> 
+  arrange(pos)
+
+# Convert and view the tibble as flextable
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+From the above we can see that v023 and v024 are of labelled class, while the rest are in numeric class. Therefore, we will have to check the numeric and labelled variables in different ways. **Note that** although survey year is a constituent ID variable we have not checked it. It is imperative that survey year would be a 4-digit variable.
+
+### Numeric ID variables check
+
+First, let's find out the required length of the numeric ID variables by checking the maximum values of the constituent ID variable across the Bangladesh DHS datasets. Here we estimate the summary stats of numeric constituent variables using skim_without_charts().
+
+```{r}
+#| label: create-dict-numeric-idvars
+#| echo: true
+#| output: false
+
+# Check the summary stats for ID vars using skimr in each bdbr dataset.
+# First we estimate the summary stats using skim_without_charts().
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(
+    skim_id_num = map(
+      bdbr_data,
+      function(df) {
+        df |> 
+          select(v001, v002, v003, bord, v021, v022) |> 
+          skim_without_charts() |> 
+          as_tibble() |> 
+          select(-c(skim_type, n_missing, complete_rate)) |> 
+          rename(
+            variable = 1,
+            mean = 2,
+            sd = 3,
+            min = 4,
+            p25 = 5,
+            p50 = 6,
+            p75 = 7,
+            max = 8
+          )
+      }
+    )
+  )
+bdbr1_pre_tmp1
+
+```
+
+Next, we check the summary stats of numeric variables by variable name-wise.
+
+```{r}
+#| label: tbl-dict-numeric-idvars
+#| echo: true
+#| output: true
+#| tbl-cap: "Summary statistics of the numeric ID variables"
+
+# Now we unnest the nested tibble so that we can compare the variable length 
+# across the bdbr datasets.
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(skim_id_num)) |> 
+  arrange(variable, svy_year) |> 
+  # change the decimal places of selected variables
+  mutate(
+    mean = sprintf("%.1f", mean),
+    sd = sprintf("%.1f", sd),
+    p75 = sprintf("%.0f", p75)
+  )
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+Now we find out the required length of the numeric ID variables to be set, so that we can correctly concatenate them to create the ID variables. The **required length of the numeric ID variables** are given in **max_digits** column. **Note that** survey year is also a constituent ID variable of 4-digits.
+
+```{r}
+#| label: tbl-maxlen-numeric-idvars
+#| echo: true
+#| output: true
+#| tbl-cap: "The maximum length of numeric variables to be set across the bdbr rounds for concatenating the ID variables"
+
+# Processing the above nested tibble further
+bdbr1_pre_tmp3 <- bdbr1_pre_tmp2 |> 
+  group_by(variable) |> 
+  # find the minimum and maximum values across surveys 
+  summarize(
+    min_val = min(min),
+    max_val = max(max)
+  ) |> 
+  mutate(
+    # calculate the num of digits in the maximum values
+    max_digits = nchar(as.character(max_val)),
+    # convert char var to factor
+    variable = fct(
+      variable, 
+      levels = c("v001", "v002", "v003", "bord", "v021", "v022")
+    )
+  ) |> 
+  # sort the rows by factor levels 
+  arrange(variable) |> 
+  # add variable labels and relocate it after variable name.
+  bind_cols(vlabel = c("cluster number", "household number", 
+                       "respondent's line number", "birth order", 
+                       "primary sampling unit", "sample strata for se")) |> 
+  relocate(vlabel, .after = 1)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp3 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+### Labelled ID variables check
+
+First we check the labels in sub-national region variable coded as v024 across the bdbr datasets. Let's create a nested tibble of v024's value labels.
+
+```{r}
+#| label: create-dict-v024
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v024 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v024 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v024) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+Now we view the value labels of v024 in the table below.
+
+```{r}
+#| label: tbl-dict-v024
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v024 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v024)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |> 
+  # Show the variable name in a col
+  mutate(var_name = "v024", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+**NOTE:** The sub-national region variable, v024 denote the same variable concept across all bdbr rounds. The number of value labels increases across the survey years denoting creation of new sub-national regions. In 1999 there were 5 regions, which increased to 6 for bdbr 1996, 1999, 2004 and 2007, then it increased 7 for bdbr 2011 and 2014, finally there were 8 regions in 2017 and 2022.\
+**VERD:** In this analysis, we do not use the region var in the ID var.
+
+------------------------------------------------------------------------
+
+Secondly, we check the labels in v023 variable that denotes the stratifications used for sampling design. First we create a nested tibble of v023's value labels.
+
+```{r}
+#| label: create-dict-v023
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v023 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v023 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v023) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+Now we view the value labels of v023 in the table below.
+
+```{r}
+#| label: tbl-dict-v023
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v023 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v023)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v023", .before = 2) 
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+**NOTE:** The labels of v023 are different across the survey rounds.\
+**VERD:** Therefore we cannot use v023 in the ID variable preparation.
+
+## Checking the Birth History variables before harmonization
+
+Undoubtedly the birth history variables are important for this study objective. Therefore, we need to scrutinize all the birth history variables before using them to prepare harmonized variables for the pooled dataset.
+
+```{r}
+#| label: create-dict-bhvars
+#| echo: true
+#| output: false
+
+# We check the birth history vars in all bdbr datasets.
+# First we create a data dictionary in nested tibble.
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |>
+  mutate(lookfor_bhvars = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(bidx, matches("^b[0-9]+")) |> 
+        lookfor(details = "full") |> 
+        select(-c(levels:n_na)) |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character()
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-bhvars
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of birth history variables across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_bhvars)) |> 
+  arrange(pos)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+From the above table we get an overall snapshot of the birth history variables. We see that the variables b1-b13 are common in all the 9 bdbr datasets. Notably bdbr 2001 and 2006 have some extra variables that are not available in other rounds. Next, we look at the other labelled variables which are common across bdbr in more details. We would like to see if the value labels of the common birth history variables are similar across the bdbr datasets.
+
+### b0 - child is twin
+
+We check the value labels of b0 variable that denotes whether the child is twin. First we create a nested tibble of b0's value labels.
+
+```{r}
+#| label: create-dict-b0
+#| echo: true
+#| output: false
+
+# Create the data dictionary for b0 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_b0 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(b0) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-b0
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b0 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_b0)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "b0", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We can see the value labels of b0 in the above table. We see that the value labels are same across all the bdbr datasets.
+
+### b2 - year of birth
+
+We see that the b2 variable has value labels only for bdbr 1999. Therefore, we check the value labels of the variable during this round.
+
+```{r}
+#| label: tbl-dict-b2
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b2 in bdbr 1999"
+
+# Create the data dictionary for b2 in bdbr 1999
+bdbr1_pre_tmp0$bdbr_data$bdbr_1999 |> 
+  select(b2) |> 
+  look_for(details = "full") |> 
+  lookfor_to_long_format() |> 
+  convert_list_columns_to_character() |> 
+  select(-c(pos, levels, class:n_na)) |> 
+  qflextable() |> 
+  autofit()
+
+```
+
+**Note that,** the birth year 0 which corresponds to the year 2000 is denoted with the label 2000. That is the only label in the variable.
+
+```{r}
+#| label: tbl-uvdist-b2
+#| echo: true
+#| output: true
+#| tbl-cap: "Distribution of b2 in bdbr 1999"
+
+# Check the distribution of b2 in bdbr 1999
+bdbr1_pre_tmp0$bdbr_data$bdbr_1999 |> 
+  tabyl(b2) |> 
+  adorn_totals() |> 
+  adorn_pct_formatting() |> 
+  qflextable() |> 
+  autofit()
+
+```
+
+For more clarity we checked the univariate distribution of birth year above in @tbl-uvdist-b2. It is clear that the survey years during 1900's have been represented by denoting just the last two digits and the year 2000 is represented by 0.
+
+### b4 - sex of child
+
+We check the value labels of b4 variable which gives the sex of the child. First we create a nested tibble of b4's value labels.
+
+```{r}
+#| label: create-dict-b4
+#| echo: true
+#| output: false
+
+# Create the data dictionary for b4 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_b4 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(b4) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-b4
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b4 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_b4)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "b4", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We can see the value labels of b4 in the above table. The value labels are same across all the bdbr datasets.
+
+### b5 - child is alive
+
+We check the value labels of b5 variable which gives the survival status of the child. First we create a nested tibble of b5's value labels.
+
+```{r}
+#| label: create-dict-b5
+#| echo: true
+#| output: false
+
+# Create the data dictionary for b5 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_b5 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(b5) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-b5
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b5 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_b5)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "b5", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table shows that the value labels of survival status of child are same across all the bdbr datasets.
+
+### b6 - age at death
+
+We check the value labels of b6 variable which shows the age at death of children. Note that this variable has many missing values across all bdbr rounds as not all children experienced mortality throughout their lifetime. First we create a nested tibble of b6's value labels.
+
+```{r}
+#| label: create-dict-b6
+#| echo: true
+#| output: false
+
+# Create the data dictionary for b5 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_b6 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(b6) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-b6
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b6 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_b6)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "b6", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table shows that the value labels of age at death of child are in two groups. First, they are same for bdbr 1996, 2001 and 2006 and and then for bdbr 2011, 2016 and 2022.
+
+### b9 - child lives with whom
+
+We check the value labels of b9 variable which gives info on who the child lives with. First we create a nested tibble of b9's value labels.
+
+```{r}
+#| label: create-dict-b9
+#| echo: true
+#| output: false
+
+# Create the data dictionary for b9 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_b9 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(b9) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-b9
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b9 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_b9)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "b9", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We can see in the above table that the value labels of b9 are same across all the bdbr datasets.
+
+### b10 - completeness of information
+
+We check the value labels of b10 variable which gives the completeness of birth history information. First we create a nested tibble of b10's value labels.
+
+```{r}
+#| label: create-dict-b10
+#| echo: true
+#| output: false
+
+# Create the data dictionary for b10 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_b10 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(b10) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-b10
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b10 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_b10)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "b10", .before = 2) 
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |>
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We can see in the above table that the value labels of b10 are same across bdbr 1996, 2001, 2006 and 2011 datasets. Then they are same for bdbr 2016 and 2022.
+
+## Checking the Common independent variables before harmonization
+
+Next we start documenting the common independent variables. First we will check the data dictionary of the common independent variables. Then we will check them variable wise.
+
+```{r}
+#| label: create-dict-comindvars
+#| echo: true
+#| output: false
+
+# We check the common independent vars in all bdbr datasets.
+# First we create the data dictionary in nested tibble.
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |>
+  mutate(lookfor_comindvars = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        # select the common independent variables
+        select(v106, v011, v501, v701, v025, v151, v152) |> 
+        lookfor(details = "full") |> 
+        select(-c(levels:n_na)) |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character()
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-comindvars
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of common independent variables across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_comindvars)) |> 
+  arrange(pos)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+From the above table we get an overall snapshot of the common independent variables. We see that majority of the have different number of value labels across the bdbr datasets. Only v025 and v151 have the same number of value labels across bdbr rounds. Next, we look at the labelled class variables among these common variables in more details. We would like to see if the value labels and codes of the common independent variables are similar across the bdbr datasets.
+
+### v106 - Mother's education level
+
+We check the value labels of v106 variable that denotes the highest education level of mother. First we create a nested tibble of v106's value labels.
+
+```{r}
+#| label: create-dict-v106
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v106 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v106 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v106) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v106
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v106 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v106)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v106", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We can see the value labels of v106 are similar across all the bdbr datasets. Although bdbr 2007 had 5 values as seen in @tbl-dict-comindvars, it has 4 value labels.
+
+### v011 - Date of birth (in CMC)
+
+The v011 variable, which has the dob of mothers in cmc, is a numeric variable. Let's check the range of these values in further details such as checking for outliers. First let's create a nested tibble of the summary statistics of v011 variable.
+
+```{r}
+#| label: create-dict-v011
+#| echo: true
+#| output: false
+
+# Create the summary statistics for v011 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(skim_v011 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v011) |> 
+        skim_without_charts() |> 
+        as_tibble() |> 
+        select(-c(skim_type, complete_rate)) |> 
+        rename(
+          variable = 1,
+          n_miss = 2,
+          mean = 3,
+          sd = 4,
+          min = 5,
+          p25 = 6,
+          p50 = 7,
+          p75 = 8,
+          max = 9
+        )
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v011
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v011 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(skim_v011)) |> 
+  # Make variable values have one decimal point 
+  mutate(
+    mean = sprintf("%.1f", mean),
+    sd = sprintf("%.1f", sd)
+  )
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+### v501 - Mother's marital status
+
+We check the value labels of v501 variable which gives the current marital status of mother. First we create a nested tibble of v501's value labels.
+
+```{r}
+#| label: create-dict-v501
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v501 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v501 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v501) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v501
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v501 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v501)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v501", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+All the bdbr rounds have the same number of value label codes. The bdbr 1993, 1996, 1999, 2004 and 2007 have the same set of value label texts. Then bdbr 2011, 2014, 2017 and 2022 have another set of similar value labels.
+
+### v701 - Husband/Partner's education level
+
+We check the value labels of v701 variable which gives the current marital status of mother. First we create a nested tibble of v701's value labels.
+
+```{r}
+#| label: create-dict-v701
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v701 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v701 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v701) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v701
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v701 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v701)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v701", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We see that all the bdbr rounds have 5 value labels and they are same across all rounds.
+
+### v025 - Type of place of residence
+
+We check the value labels of v025 variable which shows if a household belongs to rural or urban psu. First we create a nested tibble of v025's value labels.
+
+```{r}
+#| label: create-dict-v025
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v025 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v025 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v025) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v025
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v025 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(c(ctr_name, svy_year, lookfor_v025)) |> 
+  unnest(cols = c(lookfor_v025)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v025", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The values labels and codes for v025 are same across all the bdbr rounds.
+
+### v151 - Sex of household head
+
+We check the value labels of v151 variable which gives the sex of the household head. First we create a nested tibble of v151's value labels.
+
+```{r}
+#| label: create-dict-v151
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v151 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v151 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v151) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v151
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v151 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v151)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v151", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The values labels and codes for v151 are same across all the bdbr rounds.
+
+### v152 - Age of household head
+
+Interestingly, we see v152 (a continuous variable) has value labels for all rounds except bdbr 1996 and 1999. Therefore, we check the value labels of v152 for those rounds. First we create a nested tibble of v152's value labels.
+
+```{r}
+#| label: create-dict-v152
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v152 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v152 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v152) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v152
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v152 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v152)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v152", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We can see that the value labels of v152 are mostly for missing values. However, since v152 has no missing values across the bdbr rounds, we need not be concerned about them.
+
+## Checking the Social group variables before harmonization
+
+Now we document the social group variables and then harmonize them. Upon manually checking the full data dictionaries of each bdbr dataset we find the following variables - religion and ethnicity. First we will check the data dictionary of these social group variables. Then we will check them variable wise.
+
+**Note:** Only bdbr 2017 and 2022 have the native language of hh respondent variable. Since, they are not available for majority of rounds we do not use it.
+
+```{r}
+#| label: create-dict-socgrp
+#| echo: true
+#| output: false
+
+# We check the social group vars in all bdbr datasets.
+# First we create the data dictionary in nested tibble.
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |>
+  mutate(lookfor_socgrp = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        # select the common independent variables
+        select(v130, v131) |> 
+        lookfor(details = "full") |> 
+        select(-c(levels:n_na)) |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character()
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-socgrp
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of social group variables across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_socgrp)) |> 
+  arrange(pos)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table gives an overall snapshot of the social group variables. **Note that**, although there is an ethnicity variable, all its values are missing. Effectively, only the religion variable is available for use in case of Bangladesh. **Note that**, the religion variable has some missing values in the bdbr 1996, 1999, 2004 and 2014 datasets. Next, we look at just the religion variable for examining the value labels across the bdbr datasets.
+
+### v130 - Religion of hh head
+
+We check the value labels of the first social group variable v130, which gives the religion of household head. First we create a nested tibble of v130's value labels.
+
+```{r}
+#| label: create-dict-v130
+#| echo: true
+#| output: false
+
+# Create the data dictionary for v130 in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_v130 = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(v130) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v130
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v130 across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_v130)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v130", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+Evidently, the values labels of v130 are different across the bdbr 1993, 1996, 1999 and 2004 rounds. The value labels of bdbr 2007, 2011, 2014, 2017 and 2022 are similar.
+
+To harmonize the religion variable we can use the following value labels -
+
+-   1 Islam
+-   2 Others
+
+## Correcting year-related variables
+
+The year-related variables might have different formatting in each survey. Therefore, we need to check and harmonize them before appending the datasets.
+
+```{r}
+#| label: create-dict-yrvar
+#| echo: true
+#| output: false
+
+# First we create the data dictionary of year-related vars in nested tibble
+bdbr1_pre_tmp1 <- bdbr1_pre_tmp0 |> 
+  mutate(lookfor_year = map(
+    bdbr_data,
+    \(df) {
+      df |> 
+        select(c(b2, v007, v010)) |> 
+        look_for(details = "full") |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character() |> 
+        select(-c(levels:n_na))
+    }
+  ))
+bdbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-yrvar
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of year-related variables across the bdbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdbr1_pre_tmp2 <- bdbr1_pre_tmp1 |> 
+  select(-c(unf, bdbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_year)) |> 
+  arrange(pos)
+# Convert and view the tibble as flextable
+bdbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+We find that the year variables before 2001 do not have correct values. Just look at the year of interview variable. We see that the year of interview values have only the last two year digits corresponding to survey years for rounds before 2001. Therefore, we need to reformat them before appending the datasets.
+
+Also, a few year variables in some rounds have value labels. We examine them below.
+
+### b2 - Year of birth
+
+We see that the b2 variable has some value labels only for bdbr 1999. Therefore, we check those value labels for anything strange.
+
+```{r}
+#| label: tbl-dict-b2-1999
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of b2 in bdbr 1999"
+
+# Check the labels for b2 in bdbr 1999
+bdbr1_pre_tmp0$bdbr_data$bdbr_1999 |> 
+  select(b2) |> 
+  look_for(details = "full") |> 
+  lookfor_to_long_format() |>
+  convert_list_columns_to_character() |>
+  select(-c(pos, levels, class:n_na)) |>
+  qflextable() |> 
+  autofit()
+
+```
+
+Well, the year 2000 is denoted as 0 with a value label of "2000". We will correct this while harmonizing by simply denoting 0 as 2000.
+
+### v007 - Year of interview
+
+We see that the v007 variable has some value labels only for bdbr 1999 and 2007. Therefore, we check those value labels for anything strange.
+
+```{r}
+#| label: tbl-dict-v007-1999
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v007 in bdbr 1999"
+
+# Check the labels for v007 in bdbr 1999
+bdbr1_pre_tmp0$bdbr_data$bdbr_1999 |> 
+  select(v007) |> 
+  look_for(details = "full") |> 
+  lookfor_to_long_format() |>
+  convert_list_columns_to_character() |>
+  select(-c(pos, levels, class:n_na)) |>
+  qflextable() |> 
+  autofit()
+
+```
+
+```{r}
+#| label: tbl-dict-v007-2007
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of v007 in bdbr 2007"
+
+# # Check the labels for v007 in bdbr 2007
+bdbr1_pre_tmp0$bdbr_data$bdbr_2007 |> 
+  select(v007) |> 
+  look_for(details = "full") |> 
+  lookfor_to_long_format() |>
+  convert_list_columns_to_character() |>
+  select(-c(pos, levels, class:n_na)) |>
+  qflextable() |> 
+  autofit()
+
+```
+
+**Note that** in bdbr 1999 the year 2000 is denoted as 0 with a value label of "2000". Also, the year 1999 is denoted by 99 has value label 1999. We will simply correct this while harmonizing by denoting 0 as 2000 and 99 as 1999. Similarly, in bdbr 2007, the year 2007 has an empty value label. Here, we will just remove the value label.
+
+# Bangladesh HH dataset use for variable creation
+
+## Checking the ID variables before harmonization
+
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Bangladesh household recode (hr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+
+```{r}
+#| label: create-dict-bdhr-idvars
+#| echo: true
+#| output: false
+
+# We check the var type of ID vars in all bdhr datasets.
+# First we create a data dictionary of the bdhr datasets in nested tibble.
+bdhr1_pre_tmp1 <- bdhr1_pre_tmp0 |>
+  mutate(lookfor_idvars = map(
+    bdhr_data,
+    \(df) {
+      df |> 
+        select(hv001, hv002) |> 
+        lookfor(details = "full") |> 
+        select(-c(levels:n_na)) |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character()
+    }
+  ))
+bdhr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-bdhr-idvars
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of variables to be used for ID creation across the bdhr rounds"
+
+# Now we unnest the tibble and output the pooled data dictionary 
+bdhr1_pre_tmp2 <- bdhr1_pre_tmp1 |> 
+  select(c(ctr_name, svy_year, lookfor_idvars)) |> 
+  unnest(cols = c(lookfor_idvars)) |> 
+  arrange(pos)
+
+# Convert and view the tibble as flextable
+bdhr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+From the above we can see that both the hv001 and hv002 are of numeric class with no missing values. These variables can be used for preparing the ID variables after finding the maximum length of their largest value. **Note that** survey year is also a constituent ID variable of 4-digits and we need not check it.
+
+```{r}
+#| label: tbl-bdhr-idvars-maxlen
+#| echo: true
+#| output: true
+#| tbl-cap: "The maximum length of constituent ID variables to be set across the bdhr rounds"
+
+# We thought to process the above nested tibble further by decomposing the 
+# "range" col into min and max values using separate_wider_regex().
+# However, we hit a roadblock as pattern did not identify the max values in 
+# some bdhr rounds correctly
+bdhr1_pre_tmp3 <- bdhr1_pre_tmp0 |> 
+  # Generate the summary stats for id vars
+  mutate(skim_idvars = map(bdhr_data, \(df) {
+    df |> 
+      select(hv001, hv002) |> 
+      skim_without_charts()
+  })) |> 
+  # Pool the summary stats for all bdhr rounds
+  select(c(ctr_name, svy_year, skim_idvars)) |> 
+  unnest(cols = c(skim_idvars)) |> 
+  arrange(skim_variable, svy_year) |> 
+  # Group and generate the max and min values for each variable
+  group_by(variable = skim_variable) |> 
+  summarize(
+    min_val = min(numeric.p0),
+    max_val = max(numeric.p100)
+  ) |> 
+  # calculate the num of digits in the maximum values
+  mutate(
+    max_digits = nchar(as.character(max_val))
+  ) |>
+  # add variable labels and relocate it after variable name
+  bind_cols(vlabel = c("cluster number", "household number")) |>
+  relocate(vlabel, .after = 1)
+
+# Convert the tibble to flextable for easy viewing
+bdhr1_pre_tmp3 |>
+  qflextable() |>
+  align(align = "left", part = "all") |>
+  autofit()
+
+```
+
+The above table gives the required length of the constituent ID variables to be set, so that we can correctly concatenate them to create the ID variables. The **required length of the ID variables** are given in **max_digits** column. **Note that** survey year is also a constituent ID variable of 4-digits.
+
+## Checking HH-level variables before harmonization
+
+Here we check the wealth quintile variable before harmonizing them. Note in Bangladesh 1993, 1996 and 1999 the wealth quintile variables are provided in separate datasets. Therefore we join those variables to the hh file before proceeding with the checking.
+
+Upon manually checking the full data dictionaries we find the variable names. Now we will check the data dictionary of these hh-level variables. Then we will check their value labels variable wise.
+
+```{r}
+#| label: create-dict-hhvars
+#| echo: true
+#| output: false
+
+# We check the hh-level vars in all bdhr datasets.
+# First we create the data dictionary in nested tibble.
+bdhr1_pre_tmp1 <- bdhr1_pre_tmp0 |>
+  mutate(lookfor_hhvars = map(
+    bdhr_data,
+    \(df) {
+      df |> 
+        # select the common independent variables
+        select(
+          matches("^wlthind5$|^hv270$")
+        ) |> 
+        lookfor(details = "full") |> 
+        select(-c(levels:n_na)) |> 
+        # For correctly viewing the range column in data dictionary
+        convert_list_columns_to_character()
+    }
+  ))
+bdhr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-hhvars
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of hh-level variables across the bdhr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdhr1_pre_tmp2 <- bdhr1_pre_tmp1 |> 
+  select(c(svy_year, lookfor_hhvars)) |> 
+  unnest(cols = c(lookfor_hhvars)) |> 
+  arrange(pos, svy_year)
+
+# Convert the tibble to flextable for easy viewing
+bdhr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table gives an overall snapshot of the hh-level variables. All the variables are of labelled class and have the same number of value labels across all the bdhr datasets. Next, we compare the value labels of the wealth quintile variable across the bdhr datasets.
+
+### Wealth index quintile variable
+
+Next, we check the value labels of the household wealth quintile variable. The variable names of this variable differs across the bdbr datasets. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-wiqt
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+bdhr1_pre_tmp1 <- bdhr1_pre_tmp0 |> 
+  mutate(lookfor_wiqt = map(
+    bdhr_data,
+    \(df) {
+      df |> 
+        select(matches("^wlthind5$|^hv270$")) |> 
+        look_for() |> 
+        lookfor_to_long_format() |> 
+        select(value_labels)
+    }
+  ))
+bdhr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-wiqt
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of wealth quintiles across the bdhr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdhr1_pre_tmp2 <- bdhr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(c(ctr_name, svy_year, lookfor_wiqt)) |> 
+  unnest(cols = c(lookfor_wiqt)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdhr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "Wealth index quintiles", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdhr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The value labels are similar across the bdhr rounds with minor differences. Note, the value labels for bdhr 1993, 1996 and 1996 have an empty label code 0. The value label texts are similar for the set of bdhr 1993, 1996 and 1996, then they are same for bdhr 2004, 2007, 2011, 2014, 2017 and 2022 rounds. Therefore, we need to be mindful of this during harmonization.
+
+# Bangladesh PR dataset use for family structure variables creation
+
+## Checking the ID variables before harmonization
+
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Bangladesh person recode (pr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+
+```{r}
+#| label: create-dict-bdpr-idvars
+#| echo: true
+#| output: false
+
+# We check the var type of ID vars in all bdpr datasets.
+# First we create a data dictionary of the bdpr datasets in nested tibble.
+bdpr1_pre_tmp1 <- bdpr1_pre_tmp0 |>
+  mutate(lookfor_idvars = map(bdpr_data, \(df) {
+    df |> 
+      select(hv001, hv002, hvidx) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
+bdpr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-bdpr-idvars
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of variables to be used for ID creation across the bdpr rounds"
+
+# Now we unnest the tibble and output the pooled data dictionary 
+bdpr1_pre_tmp2 <- bdpr1_pre_tmp1 |> 
+  select(c(ctr_name, svy_year, lookfor_idvars)) |> 
+  unnest(cols = c(lookfor_idvars)) |> 
+  arrange(pos)
+
+# Convert and view the tibble as flextable
+bdpr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+From the above table we can see that all the three constituent ID variables are of numeric class with no missing values. These variables can directly be used for preparing the ID variables after finding the maximum length of their largest value. **Note that** survey year is also a constituent ID variable of 4-digits and we need not check it.
+
+```{r}
+#| label: tbl-bdpr-idvars-maxlen
+#| echo: true
+#| output: true
+#| tbl-cap: "The maximum length of constituent ID variables to be set across the bdpr rounds"
+
+# We thought to process the above nested tibble further by decomposing the 
+# "range" col into min and max values using separate_wider_regex().
+# However, we hit a roadblock as pattern did not identify the max values in 
+# some bdpr rounds correctly
+bdpr1_pre_tmp3 <- bdpr1_pre_tmp0 |> 
+  # Generate the summary stats for id vars
+  mutate(skim_idvars = map(bdpr_data, \(df) {
+    df |> 
+      select(hv001, hv002, hvidx) |> 
+      skim_without_charts()
+  })) |> 
+  # Pool the summary stats for all bdpr rounds
+  select(c(ctr_name, svy_year, skim_idvars)) |> 
+  unnest(cols = c(skim_idvars)) |> 
+  arrange(skim_variable, svy_year) |> 
+  # Group and generate the max and min values for each variable
+  group_by(variable = skim_variable) |> 
+  summarize(
+    min_val = min(numeric.p0),
+    max_val = max(numeric.p100)
+  ) |> 
+  # calculate the num of digits in the maximum values
+  mutate(
+    max_digits = nchar(as.character(max_val))
+  ) |>
+  # add variable labels and relocate it after variable name
+  bind_cols(vlabel = c("cluster number", "household number", "Persons line number")) |>
+  relocate(vlabel, .after = 1)
+
+# Convert the tibble to flextable for easy viewing
+bdpr1_pre_tmp3 |>
+  qflextable() |>
+  align(align = "left", part = "all") |>
+  autofit()
+
+```
+
+The above table gives the required length of the constituent ID variables to be set, so that we can correctly concatenate them to create the ID variables. The **required length of the ID variables** are given in **max_digits** column. **Note that** survey year is also a constituent ID variable of 4-digits.
+
+## Checking Family structure variables before harmonization
+
+Here we check the family structure related variables before harmonizing them. The variable names were collected by manually checking the full data dictionaries. Here we will check the data dictionary of these hh-level variables and focus on the variable types.
+
+```{r}
+#| label: create-dict-famstrvars
+#| echo: true
+#| output: false
+
+# We check the family structure vars in all bdpr datasets.
+# First we create the data dictionary in nested tibble.
+bdpr1_pre_tmp1 <- bdpr1_pre_tmp0 |>
+  mutate(lookfor_famstrvars = map(bdpr_data, \(df) {
+    df |> 
+      # select the common independent variables
+      select(c(hv101, hv102, hv103, hv104, hv105)) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
+bdpr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-famstrvars
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of family structure vars across the bdpr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+bdpr1_pre_tmp2 <- bdpr1_pre_tmp1 |> 
+  select(c(svy_year, lookfor_famstrvars)) |> 
+  unnest(cols = c(lookfor_famstrvars)) |> 
+  arrange(pos, svy_year)
+
+# Convert the tibble to flextable for easy viewing
+bdpr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table gives an overall snapshot of the family structure related variables. Interestingly, all the variables including age of hh members (a continuous var) are of labelled class. The relation to head and de facto resident variables have few missing values in bdpr 1996. **Note that**, the three variables of interest hv101-hv102, two variables hv101 and hv103 have different number of value labels across the bdpr rounds. Next, we compare the value labels of the individual variables across the bdpr datasets.
+
+### hv101 - Relationship to head
+
+Next, we check the value labels of the relationship to the household head variable. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-hv101
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+bdpr1_pre_tmp1 <- bdpr1_pre_tmp0 |> 
+  mutate(lookfor_hv101 = map(bdpr_data, \(df) {
+    df |> 
+      select(hv101) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
+bdpr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-hv101
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of relationship to head variable across the bdpr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdpr1_pre_tmp2 <- bdpr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(c(ctr_name, svy_year, lookfor_hv101)) |> 
+  unnest(cols = c(lookfor_hv101)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdpr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "hv101", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdpr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table shows that the value label texts vary across the bdpr rounds. To harmonize the relationship to head variable we will use the following value labels -
+
+-   1 head
+-   2 spouse
+-   3 child
+-   4 child-in-law
+-   5 grandchild
+-   6 parent
+-   7 parent-in-law
+-   8 sibling
+-   9 others
+
+Here, we merge the "spouse" and "co-spouse" categories into "spouse" category, and the "son/daughter" and "adopted/foster child" categories into "child" category.
+
+### hv102 - de jure/usual resident
+
+Next, we check the value labels of the de jure resident variable. This means if a household member is an usual resident of the household. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-hv102
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+bdpr1_pre_tmp1 <- bdpr1_pre_tmp0 |> 
+  mutate(lookfor_hv102 = map(bdpr_data, \(df) {
+    df |> 
+      select(hv102) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
+bdpr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-hv102
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of the De jure resident variable across the bdpr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdpr1_pre_tmp2 <- bdpr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(c(ctr_name, svy_year, lookfor_hv102)) |> 
+  unnest(cols = c(lookfor_hv102)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdpr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "hv102", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdpr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table shows that hv102 has the same value label texts and codes across the bdpr rounds. Therefore, we can use this variable directly after converting to factor type.
+
+### hv103 - de facto resident
+
+Next, we check the value labels of the de facto resident variable. In DHS this means if a household member slept last night in the household. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-hv103
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+bdpr1_pre_tmp1 <- bdpr1_pre_tmp0 |> 
+  mutate(lookfor_hv103 = map(bdpr_data, \(df) {
+    df |> 
+      select(hv103) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
+bdpr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-hv103
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of the De facto resident variable across the bdpr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+bdpr1_pre_tmp2 <- bdpr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(c(ctr_name, svy_year, lookfor_hv103)) |> 
+  unnest(cols = c(lookfor_hv103)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "bdpr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "hv103", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+bdpr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The above table shows that hv103 has the same value label texts and codes across the bdpr rounds. Therefore, we can use this variable directly after converting to factor type.
+
+## START FROM HERE
+
+TASK:
+
+-   Handling multiple births in death scarring vars may not be necessary.
+-   Preceding birth interval construction has changed with DHS-7. We could re-construct it.
+
+TO BE CONTINUED ...
