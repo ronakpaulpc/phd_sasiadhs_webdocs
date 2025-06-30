@@ -4,7 +4,7 @@ title: "Maldives DHS data dictionary"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -75,8 +75,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  # font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -120,15 +123,28 @@ mvpr_raw <- read_rds(
 #| tbl-cap: "Maldives DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-mvbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+mvbr_raw |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from mvir_tmp_intro
+  left_join(
+    mvir_raw |> 
+      mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+      select(year, n_women),
+    by = join_by(svy_year == year)
+  ) |> 
   # Join vars from mvhr_tmp_intro
   left_join(
-    mvhr_raw |> select(svy_year, n_households),
+    mvhr_raw |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from mvpr_tmp_intro
   left_join(
-    mvpr_raw |> select(svy_year, n_persons),
+    mvpr_raw |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble
@@ -139,8 +155,7 @@ mvbr_raw |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all") |> 
-  autofit()
+  align(align = "left", part = "all")
 
 ```
 
@@ -157,7 +172,7 @@ dadict_basic <- function(df) {
   # create data dictionary
   labelled::lookfor(details = "basic") |> 
   # keep only the required columns
-  select(-c(levels, value_labels)) |> 
+  select(-c(pos, levels, value_labels)) |> 
   # for correctly viewing the range column in data dictionary
   labelled::convert_list_columns_to_character()
 }
@@ -181,6 +196,12 @@ Here we check the data dictionary of Maldives BR 2009 dataset.
 mvbr_raw$mvbr_data$mvbr_2009 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvbr",
+    svy_year = 2009,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -200,6 +221,12 @@ Here we check the data dictionary of Maldives BR 2016 dataset.
 mvbr_raw$mvbr_data$mvbr_2016 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvbr",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -223,6 +250,12 @@ Here we check the data dictionary of Maldives IR 2009 dataset.
 mvir_raw$mvir_data$mvir_2009 |>
   # generate basic data dictionary 
   dadict_basic() |>  
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvir",
+    svy_year = 2009,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -253,7 +286,13 @@ Here we check the data dictionary of Maldives IR 2016 dataset.
 # We create the data dictionary of the mvir 2016 dataset.
 mvir_raw$mvir_data$mvir_2016 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvir",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -289,6 +328,12 @@ Here we check the data dictionary of Maldives HR 2009 dataset.
 mvhr_raw$mvhr_data$mvhr_2009 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvhr",
+    svy_year = 2009,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -308,6 +353,12 @@ Here we check the data dictionary of Maldives HR 2016 dataset.
 mvhr_raw$mvhr_data$mvhr_2016 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvhr",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -331,6 +382,12 @@ Here we check the data dictionary of Maldives PR 2009 dataset.
 mvpr_raw$mvpr_data$mvpr_2009 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvpr",
+    svy_year = 2009,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -350,6 +407,12 @@ Here we check the data dictionary of Maldives PR 2016 dataset.
 mvpr_raw$mvpr_data$mvpr_2016 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "mvpr",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")

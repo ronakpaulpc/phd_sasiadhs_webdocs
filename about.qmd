@@ -13,5 +13,9 @@ This work is part of my PhD research on **"Clustering and Risk Factors of Fetal 
 # Contents
 
 -   Raw Data Dictionaries
+-   Variable checklist
 -   Data Pooling Pre-checks
+-   Pooled Data Dictionaries
 -   Preliminary Data Analyses
+
+

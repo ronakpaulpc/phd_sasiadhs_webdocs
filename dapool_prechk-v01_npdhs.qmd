@@ -4,7 +4,7 @@ title: "NPDHS data pooling pre-checks"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -80,8 +80,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  # font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -123,7 +126,9 @@ nppr1_tmp_intro <- read_rds(
 #| tbl-cap: "Nepal DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-npbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |> 
+npbr1_tmp_intro |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
   # Join vars from npir_tmp_intro
   left_join(
     npir1_tmp_intro |> 
@@ -133,12 +138,16 @@ npbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # Join vars from nphr_tmp_intro
   left_join(
-    nphr1_tmp_intro |> select(svy_year, n_households),
+    nphr1_tmp_intro |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from nppr_tmp_intro
   left_join(
-    nppr1_tmp_intro |> select(svy_year, n_persons),
+    nppr1_tmp_intro |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble

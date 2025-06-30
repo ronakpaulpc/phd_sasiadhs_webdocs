@@ -31,6 +31,8 @@ website:
           href: dadict_npdhs.qmd
         - text: Pakistan DHS Dictionary
           href: dadict_pkdhs.qmd
+      - text: Variable checklist
+        href: davars_checklist.qmd
       - text: Data Pooling Pre-checks
         menu:
         - text: Bangladesh DHS Pre-checks
@@ -65,7 +67,9 @@ website:
           - text: Nepal DHS Dictionary
             href: dadict_npdhs.qmd
           - text: Pakistan DHS Dictionary
-            href: dadict_pkdhs.qmd            
+            href: dadict_pkdhs.qmd
+      - text: Variable checklist
+        href: davars_checklist.qmd
       - section: "Data Pooling Pre-checks"
         contents:
           - text: Bangladesh DHS Pre-checks

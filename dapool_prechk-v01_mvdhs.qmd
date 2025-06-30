@@ -4,7 +4,7 @@ title: "MVDHS data pooling pre-checks"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -80,8 +80,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -92,13 +95,28 @@ set_flextable_defaults(
 Here we document the variable codes and labels of variables across all the Maldives Demographic and Health Survey (DHS) datasets. We check the variable labels and codes before running the pooling code in "daprep-v01_mvdhs.R". We pool the following Maldives DHS surveys:
 
 ```{r}
-#| label: set-default-filepath
+#| label: data-import-temp
 #| echo: false
 #| output: false
 #| cache: false
 
-# Setting correct relative file path for markdown doc
-here::i_am("sasiadhs_qdocs_ind-reports/dapool_prechk-v01_mvdhs.qmd") 
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the mvbr nested tibble
+mvbr1_tmp_intro <- read_rds(
+  file = here("website_data", "mvbr1_nest0.rds")
+)
+# Importing the mvir nested tibble
+mvir1_tmp_intro <- read_rds(
+  file = here("website_data", "mvir1_nest0.rds")
+)
+# Importing the mvhr nested tibble
+mvhr1_tmp_intro <- read_rds(
+  file = here("website_data", "mvhr1_nest0.rds")
+)
+# Importing the mvpr nested tibble
+mvpr1_tmp_intro <- read_rds(
+  file = here("website_data", "mvpr1_nest0.rds")
+)
 
 ```
 
@@ -108,26 +126,10 @@ here::i_am("sasiadhs_qdocs_ind-reports/dapool_prechk-v01_mvdhs.qmd")
 #| output: true
 #| tbl-cap: "Maldives DHS datasets and their sample size to be used for pooling"
 
-# Here we temporarily import the tibbles for sample size table creation
-# Importing the mvbr nested tibble
-mvbr1_tmp_intro <- read_rds(
-  file = here("sasiadhs_data_prep", "mvbr1_nest0.rds")
-)
-# Importing the mvir nested tibble
-mvir1_tmp_intro <- read_rds(
-  file = here("sasiadhs_data_prep", "mvir1_nest0.rds")
-)
-# Importing the mvhr nested tibble
-mvhr1_tmp_intro <- read_rds(
-  file = here("sasiadhs_data_prep", "mvhr1_nest0.rds")
-)
-# Importing the mvpr nested tibble
-mvpr1_tmp_intro <- read_rds(
-  file = here("sasiadhs_data_prep", "mvpr1_nest0.rds")
-)
-
 # Creating the table of surveys to be used for pooling
-mvbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |> 
+mvbr1_tmp_intro |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
   # Join vars from mvir_tmp_intro
   left_join(
     mvir1_tmp_intro |> 
@@ -137,12 +139,16 @@ mvbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # Join vars from mvhr_tmp_intro
   left_join(
-    mvhr1_tmp_intro |> select(svy_year, n_households),
+    mvhr1_tmp_intro |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from mvpr_tmp_intro
   left_join(
-    mvpr1_tmp_intro |> select(svy_year, n_persons),
+    mvpr1_tmp_intro |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble
@@ -214,11 +220,11 @@ We will directly import the nested tibble here. The code for dataset preparation
 
 # Here we import the tibbles to be used for dataset checking
 # Import the mvbr nested tibble
-mvbr1_pre_tmp0 <- read_rds(file = here("sasiadhs_data_prep", "mvbr1_nest0.rds"))
+mvbr1_pre_tmp0 <- read_rds(file = here("website_data", "mvbr1_nest0.rds"))
 # Import the mvhr nested tibble
-mvhr1_pre_tmp0 <- read_rds(file = here("sasiadhs_data_prep", "mvhr1_nest0.rds"))
+mvhr1_pre_tmp0 <- read_rds(file = here("website_data", "mvhr1_nest0.rds"))
 # Import the mvpr nested tibble
-mvpr1_pre_tmp0 <- read_rds(file = here("sasiadhs_data_prep", "mvpr1_nest0.rds"))
+mvpr1_pre_tmp0 <- read_rds(file = here("website_data", "mvpr1_nest0.rds"))
 
 ```
 

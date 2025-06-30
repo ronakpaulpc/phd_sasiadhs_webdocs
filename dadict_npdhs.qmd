@@ -4,7 +4,7 @@ title: "Nepal DHS data dictionary"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -75,8 +75,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  # font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -120,15 +123,28 @@ nppr_raw <- read_rds(
 #| tbl-cap: "Nepal DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-npbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+npbr_raw |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from npir_tmp_intro
+  left_join(
+    npir_raw |> 
+      mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+      select(year, n_women),
+    by = join_by(svy_year == year)
+  ) |> 
   # Join vars from nphr_tmp_intro
   left_join(
-    nphr_raw |> select(svy_year, n_households),
+    nphr_raw |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from nppr_tmp_intro
   left_join(
-    nppr_raw |> select(svy_year, n_persons),
+    nppr_raw |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble
@@ -139,8 +155,7 @@ npbr_raw |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all") |> 
-  autofit()
+  align(align = "left", part = "all")
 
 ```
 
@@ -157,7 +172,7 @@ dadict_basic <- function(df) {
   # create data dictionary
   labelled::lookfor(details = "basic") |> 
   # keep only the required columns
-  select(-c(levels, value_labels)) |> 
+  select(-c(pos, levels, value_labels)) |> 
   # for correctly viewing the range column in data dictionary
   labelled::convert_list_columns_to_character()
 }
@@ -180,7 +195,13 @@ Here we check the data dictionary of Nepal BR 1996 dataset.
 # We create the data dictionary of the npbr 1996 dataset.
 npbr_raw$npbr_data$npbr_1996 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -200,6 +221,12 @@ Here we check the data dictionary of Nepal BR 2001 dataset.
 npbr_raw$npbr_data$npbr_2001 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    svy_year = 2001,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -219,6 +246,12 @@ Here we check the data dictionary of Nepal BR 2006 dataset.
 npbr_raw$npbr_data$npbr_2006 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    svy_year = 2006,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -238,6 +271,12 @@ Here we check the data dictionary of Nepal BR 2011 dataset.
 npbr_raw$npbr_data$npbr_2011 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -257,6 +296,12 @@ Here we check the data dictionary of Nepal BR 2016 dataset.
 npbr_raw$npbr_data$npbr_2016 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -276,6 +321,12 @@ Here we check the data dictionary of Nepal BR 2022 dataset.
 npbr_raw$npbr_data$npbr_2022 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -298,7 +349,13 @@ Here we check the data dictionary of Nepal IR 1996 dataset.
 # We create the data dictionary of the npir 1996 dataset.
 npir_raw$npir_data$npir_1996 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npir",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -330,6 +387,12 @@ Here we check the data dictionary of Nepal IR 2001 dataset.
 npir_raw$npir_data$npir_2001 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npir",
+    svy_year = 2001,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -361,6 +424,12 @@ Here we check the data dictionary of Nepal IR 2006 dataset.
 npir_raw$npir_data$npir_2006 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npir",
+    svy_year = 2006,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -392,6 +461,12 @@ Here we check the data dictionary of Nepal IR 2011 dataset.
 npir_raw$npir_data$npir_2011 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npir",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -423,6 +498,12 @@ Here we check the data dictionary of Nepal IR 2016 dataset.
 npir_raw$npir_data$npir_2016 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npir",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -454,6 +535,12 @@ Here we check the data dictionary of Nepal IR 2022 dataset.
 npir_raw$npir_data$npir_2022 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npir",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -488,7 +575,13 @@ Here we check the data dictionary of Nepal HR 1996 dataset.
 # We create the data dictionary of the nphr 1996 dataset.
 nphr_raw$nphr_data$nphr_1996 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nphr",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -508,6 +601,12 @@ Here we check the data dictionary of Nepal HR 2001 dataset.
 nphr_raw$nphr_data$nphr_2001 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nphr",
+    svy_year = 2001,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -527,6 +626,12 @@ Here we check the data dictionary of Nepal HR 2006 dataset.
 nphr_raw$nphr_data$nphr_2006 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nphr",
+    svy_year = 2006,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -546,6 +651,12 @@ Here we check the data dictionary of Nepal HR 2011 dataset.
 nphr_raw$nphr_data$nphr_2011 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nphr",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -565,6 +676,12 @@ Here we check the data dictionary of Nepal HR 2016 dataset.
 nphr_raw$nphr_data$nphr_2016 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nphr",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -584,6 +701,12 @@ Here we check the data dictionary of Nepal HR 2022 dataset.
 nphr_raw$nphr_data$nphr_2022 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nphr",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -606,7 +729,13 @@ Here we check the data dictionary of Nepal PR 1996 dataset.
 # We create the data dictionary of the nppr 1996 dataset.
 nppr_raw$nppr_data$nppr_1996 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nppr",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -626,6 +755,12 @@ Here we check the data dictionary of Nepal PR 2001 dataset.
 nppr_raw$nppr_data$nppr_2001 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nppr",
+    svy_year = 2001,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -645,6 +780,12 @@ Here we check the data dictionary of Nepal PR 2006 dataset.
 nppr_raw$nppr_data$nppr_2006 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nppr",
+    svy_year = 2006,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -664,6 +805,12 @@ Here we check the data dictionary of Nepal PR 2011 dataset.
 nppr_raw$nppr_data$nppr_2011 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nppr",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -683,6 +830,12 @@ Here we check the data dictionary of Nepal PR 2016 dataset.
 nppr_raw$nppr_data$nppr_2016 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nppr",
+    svy_year = 2016,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -702,6 +855,12 @@ Here we check the data dictionary of Nepal PR 2022 dataset.
 nppr_raw$nppr_data$nppr_2022 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "nppr",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")

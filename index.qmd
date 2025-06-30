@@ -23,7 +23,11 @@ The contents of this website are distributed into the following sections:
 
 -   **Raw Data Dictionaries:** This section contains the dictionaries of the variables available across the birth history, individual, household and person recode files of South Asian DHS.
 
+-   **Variable checklist:** This section contains the checklist of the variables we need for analysis across the DHS datasets of South Asia.
+
 -   **Data Pooling Pre-checks:** Here we have documented the variable structures before harmonizing and pooling.
+
+-   **Pooled Data Dictionaries:** This section contains the data dictionaries of the pooled datasets to be used for analysis across South Asia and it's countries.
 
 -   **Preliminary Data Analysis:** In this section we perform basic data analysis to get an idea about the trends and determinants of early-life mortality clustering.
 

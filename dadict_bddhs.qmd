@@ -4,7 +4,7 @@ title: "Bangladesh DHS data dictionary"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -75,8 +75,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  # font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -120,15 +123,28 @@ bdpr_raw <- read_rds(
 #| tbl-cap: "Bangladesh DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-bdbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+bdbr_raw |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from bdir_tmp_intro
+  left_join(
+    bdir_raw |> 
+      mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+      select(year, n_women),
+    by = join_by(svy_year == year)
+  ) |> 
   # Join vars from bdhr_tmp_intro
   left_join(
-    bdhr_raw |> select(svy_year, n_households),
+    bdhr_raw |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from bdpr_tmp_intro
   left_join(
-    bdpr_raw |> select(svy_year, n_persons),
+    bdpr_raw |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble
@@ -139,8 +155,7 @@ bdbr_raw |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all") |> 
-  autofit()
+  align(align = "left", part = "all")
 
 ```
 
@@ -157,7 +172,7 @@ dadict_basic <- function(df) {
   # create data dictionary
   labelled::lookfor(details = "basic") |> 
   # keep only the required columns
-  select(-c(levels, value_labels)) |> 
+  select(-c(pos, levels, value_labels)) |> 
   # for correctly viewing the range column in data dictionary
   labelled::convert_list_columns_to_character()
 }
@@ -181,6 +196,12 @@ Here we check the data dictionary of Bangladesh BR 1993 dataset.
 bdbr_raw$bdbr_data$bdbr_1993 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 1993,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -200,6 +221,12 @@ Here we check the data dictionary of Bangladesh BR 1996 dataset.
 bdbr_raw$bdbr_data$bdbr_1996 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -219,6 +246,12 @@ Here we check the data dictionary of Bangladesh BR 1999 dataset.
 bdbr_raw$bdbr_data$bdbr_1999 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 1999,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -238,6 +271,12 @@ Here we check the data dictionary of Bangladesh BR 2004 dataset.
 bdbr_raw$bdbr_data$bdbr_2004 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 2004,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -257,6 +296,12 @@ Here we check the data dictionary of Bangladesh BR 2007 dataset.
 bdbr_raw$bdbr_data$bdbr_2007 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 2007,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -276,6 +321,12 @@ Here we check the data dictionary of Bangladesh BR 2011 dataset.
 bdbr_raw$bdbr_data$bdbr_2011 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -295,6 +346,12 @@ Here we check the data dictionary of Bangladesh BR 2014 dataset.
 bdbr_raw$bdbr_data$bdbr_2014 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 2014,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -314,6 +371,12 @@ Here we check the data dictionary of Bangladesh BR 2017 dataset.
 bdbr_raw$bdbr_data$bdbr_2017 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 2017,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -333,6 +396,12 @@ Here we check the data dictionary of Bangladesh BR 2022 dataset.
 bdbr_raw$bdbr_data$bdbr_2022 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -355,7 +424,13 @@ Here we check the data dictionary of Bangladesh IR 1993 dataset.
 # We create the data dictionary of the bdir 1993 dataset.
 bdir_raw$bdir_data$bdir_1993 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 1993,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -386,7 +461,13 @@ Here we check the data dictionary of Bangladesh IR 1996 dataset.
 # We create the data dictionary of the bdir 1996 dataset.
 bdir_raw$bdir_data$bdir_1996 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -418,6 +499,12 @@ Here we check the data dictionary of Bangladesh IR 1999 dataset.
 bdir_raw$bdir_data$bdir_1999 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 1999,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -449,6 +536,12 @@ Here we check the data dictionary of Bangladesh IR 2004 dataset.
 bdir_raw$bdir_data$bdir_2004 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 2004,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -480,6 +573,12 @@ Here we check the data dictionary of Bangladesh IR 2007 dataset.
 bdir_raw$bdir_data$bdir_2007 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 2007,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -511,6 +610,12 @@ Here we check the data dictionary of Bangladesh IR 2011 dataset.
 bdir_raw$bdir_data$bdir_2011 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -542,6 +647,12 @@ Here we check the data dictionary of Bangladesh IR 2014 dataset.
 bdir_raw$bdir_data$bdir_2014 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 2014,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -573,6 +684,12 @@ Here we check the data dictionary of Bangladesh IR 2017 dataset.
 bdir_raw$bdir_data$bdir_2017 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 2017,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -604,6 +721,12 @@ Here we check the data dictionary of Bangladesh IR 2022 dataset.
 bdir_raw$bdir_data$bdir_2022 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdir",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -639,6 +762,12 @@ Here we check the data dictionary of Bangladesh HR 1993 dataset.
 bdhr_raw$bdhr_data$bdhr_1993 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 1993,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -658,6 +787,12 @@ Here we check the data dictionary of Bangladesh HR 1996 dataset.
 bdhr_raw$bdhr_data$bdhr_1996 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -677,6 +812,12 @@ Here we check the data dictionary of Bangladesh HR 1999 dataset.
 bdhr_raw$bdhr_data$bdhr_1999 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 1999,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -696,6 +837,12 @@ Here we check the data dictionary of Bangladesh HR 2004 dataset.
 bdhr_raw$bdhr_data$bdhr_2004 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 2004,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -715,6 +862,12 @@ Here we check the data dictionary of Bangladesh HR 2007 dataset.
 bdhr_raw$bdhr_data$bdhr_2007 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 2007,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -734,6 +887,12 @@ Here we check the data dictionary of Bangladesh HR 2011 dataset.
 bdhr_raw$bdhr_data$bdhr_2011 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -753,6 +912,12 @@ Here we check the data dictionary of Bangladesh HR 2014 dataset.
 bdhr_raw$bdhr_data$bdhr_2014 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 2014,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -772,6 +937,12 @@ Here we check the data dictionary of Bangladesh HR 2017 dataset.
 bdhr_raw$bdhr_data$bdhr_2017 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 2017,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -791,6 +962,12 @@ Here we check the data dictionary of Bangladesh HR 2022 dataset.
 bdhr_raw$bdhr_data$bdhr_2022 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdhr",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -814,6 +991,12 @@ Here we check the data dictionary of Bangladesh PR 1993 dataset.
 bdpr_raw$bdpr_data$bdpr_1993 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 1993,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -833,6 +1016,12 @@ Here we check the data dictionary of Bangladesh PR 1996 dataset.
 bdpr_raw$bdpr_data$bdpr_1996 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 1996,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -852,6 +1041,12 @@ Here we check the data dictionary of Bangladesh PR 1999 dataset.
 bdpr_raw$bdpr_data$bdpr_1999 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 1999,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -871,6 +1066,12 @@ Here we check the data dictionary of Bangladesh PR 2004 dataset.
 bdpr_raw$bdpr_data$bdpr_2004 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 2004,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -890,6 +1091,12 @@ Here we check the data dictionary of Bangladesh PR 2007 dataset.
 bdpr_raw$bdpr_data$bdpr_2007 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 2007,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -909,6 +1116,12 @@ Here we check the data dictionary of Bangladesh PR 2011 dataset.
 bdpr_raw$bdpr_data$bdpr_2011 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 2011,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -928,6 +1141,12 @@ Here we check the data dictionary of Bangladesh PR 2014 dataset.
 bdpr_raw$bdpr_data$bdpr_2014 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 2014,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -947,6 +1166,12 @@ Here we check the data dictionary of Bangladesh PR 2017 dataset.
 bdpr_raw$bdpr_data$bdpr_2017 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 2017,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -966,6 +1191,12 @@ Here we check the data dictionary of Bangladesh PR 2022 dataset.
 bdpr_raw$bdpr_data$bdpr_2022 |>
   # generate data dictionary
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdpr",
+    svy_year = 2022,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")

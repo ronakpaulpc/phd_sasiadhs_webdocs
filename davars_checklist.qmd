@@ -1,0 +1,376 @@
+---
+title: "South Asia DHS variable checklist"
+---
+
+# Getting started
+
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Introduction
+
+On this page we show the variable checklist of South Asian Demographic and Health Survey (DHS) datasets. This will be the primary document for viewing what variables are available for use in the DHS datasets in South Asia and across the countries. We check the variable availability from the raw data dictionaries and after that run the data pooling code. 
+
+Across all the checklists, we have dataset name in the table header row, variable label in the table col and variable name as records. If a variable is available in the dataset we give the variable name and if it's unavailable we keep the records as missing.
+
+# Afghanistan variable checklist
+
+The variable availability for Afghanistan is given below.
+
+```{r}
+#| label: data-checklist-af
+#| echo: false
+#| output: false
+
+# We create the data of the AFDHS dataset
+afdhs <- tribble(
+    ~var_name, ~af_2015,
+    "Birth history variables",          NA,
+    "Survival status of child",         "b5",
+    "Child's age at death (cmc)",       "b7",
+    "Child is twin",                    "b0",
+    "Child's month of birth",           "b1",
+    "Child's year of birth",            "b2",
+    "Child's date of birth (cmc)",      "b3",
+    "Child's sex",                      "b4",
+    "Preceding birth interval",         "b11",
+    "Social group variables",           NA,
+    "Religion",                         NA,
+    "Caste",                            NA,
+    "Ethnicity",                        "v131",
+    "Language of questionnaire",        NA,
+    "Language of interview",            "v045b",
+    "Native language of respondent",    "v045c",
+    "Distance to healthcare facility",  "v467",
+    "Covered by health insurance",      "v481",
+    "Cluster altitude",                 NA,
+    "Mother's anemia level",            NA,
+    "Respondent's weight in kg",        NA,
+    "Respondent's height in cm",        NA,
+    "Relationship to hh head",          "hv101",
+    "Sex of hh member",                 "hv104",
+    "Age of hh member",                 "hv105",
+    "Highest education of hh member",   "hv106",
+    "Sex of hh head",                   "hv219",
+    "Age of hh head",                   "hv220",
+    "Wealth index",                     "hv270"
+
+)
+
+```
+
+```{r}
+#| label: tbl-checklist-af
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in Afghanistan DHS"
+
+# We create the data of the AFDHS dataset
+afdhs |> 
+    flextable() |> 
+    set_header_labels(
+        var_name = "Variable labels",
+        af_2015 = "AFDHS 2015"
+    )
+
+```
+
+# Bangladesh variable checklist
+
+The variable availability for Bangladesh is given below.
+
+```{r}
+#| label: data-checklist-bd
+#| echo: false
+#| output: false
+
+# We create the data of the BDDHS dataset
+bddhs <- tribble(
+    ~var_name, ~bd_1993, ~bd_1996, ~bd_1999, ~bd_2004, ~bd_2007, ~bd_2011, ~bd_2014, ~bd_2017, ~bd_2022,
+    "Social group variables",           NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130",
+    "Caste",                            NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Ethnicity",                        NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Language of questionnaire",        NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Language of interview",            NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Native language of respondent",    NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Distance to healthcare facility",  NA, NA, NA, NA, NA, NA, NA, NA, NA
+)
+
+```
+
+```{r}
+#| label: tbl-checklist-bd
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in Bangladesh DHS"
+
+# We create the data of the BDDHS dataset
+bddhs |> 
+    flextable() |> 
+    set_header_labels(
+        var_name = "Variable labels",
+        bd_1993 = "BDDHS 1993",
+        bd_1996 = "BDDHS 1996",
+        bd_1999 = "BDDHS 1999",
+        bd_2004 = "BDDHS 2004",
+        bd_2007 = "BDDHS 2007",
+        bd_2011 = "BDDHS 2011",
+        bd_2014 = "BDDHS 2014",
+        bd_2017 = "BDDHS 2017",
+        bd_2022 = "BDDHS 2022"
+    )
+
+```
+
+# India variable checklist
+
+The variable availability for India is given below.
+
+```{r}
+#| label: data-checklist-ia
+#| echo: false
+#| output: false
+
+# We create the data of the IADHS dataset
+iadhs <- tribble(
+    ~var_name, ~ia_1992, ~ia_1998, ~ia_2005, ~ia_2015, ~ia_2019,
+    "Social group variables",           NA, NA, NA, NA, NA,
+    "Religion",                         "v130", "v130", "v130", "v130", "v130",
+    "Caste",                            NA, NA, NA, NA, NA,
+    "Ethnicity",                        NA, NA, NA, NA, NA,
+    "Language of questionnaire",        NA, NA, NA, NA, NA,
+    "Language of interview",            NA, NA, NA, NA, NA,
+    "Native language of respondent",    NA, NA, NA, NA, NA,
+    "Distance to healthcare facility",  NA, NA, NA, NA, NA
+)
+
+```
+
+```{r}
+#| label: tbl-checklist-ia
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in India DHS"
+
+# We create the data of the IADHS dataset
+iadhs |> 
+    flextable() |> 
+    set_header_labels(
+        var_name = "Variable labels",
+        ia_1992 = "IADHS 1992",
+        ia_1998 = "IADHS 1998",
+        ia_2005 = "IADHS 2005",
+        ia_2015 = "IADHS 2015",
+        ia_2019 = "IADHS 2019"
+    )
+
+```
+
+# Maldives variable checklist
+
+The variable availability for Maldives is given below.
+
+```{r}
+#| label: data-checklist-mv
+#| echo: false
+#| output: false
+
+# We create the data of the MVDHS dataset
+mvdhs <- tribble(
+    ~var_name, ~mv_2009, ~mv_2016,
+    "Social group variables",           NA, NA,
+    "Religion",                         "v130", "v130",
+    "Caste",                            NA, NA,
+    "Ethnicity",                        NA, NA,
+    "Language of questionnaire",        NA, NA,
+    "Language of interview",            NA, NA,
+    "Native language of respondent",    NA, NA,
+    "Distance to healthcare facility",  NA, NA
+)
+
+```
+
+```{r}
+#| label: tbl-checklist-mv
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in Maldives DHS"
+
+# We create the data of the MVDHS dataset
+mvdhs |> 
+    flextable() |> 
+    set_header_labels(
+        var_name = "Varmvble labels",
+        mv_2009 = "MVDHS 2009",
+        mv_2016 = "MVDHS 2016"
+    )
+
+```
+
+# Nepal variable checklist
+
+The variable availability for Nepal is given below.
+
+```{r}
+#| label: data-checklist-np
+#| echo: false
+#| output: false
+
+# We create the data of the NPDHS dataset
+npdhs <- tribble(
+    ~var_name, ~np_1996, ~np_2001, ~np_2006, ~np_2011, ~np_2016, ~np_2022,
+    "Social group variables",           NA, NA, NA, NA, NA, NA,
+    "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130",
+    "Caste",                            NA, NA, NA, NA, NA, NA,
+    "Ethnicity",                        NA, NA, NA, NA, NA, NA,
+    "Language of questionnaire",        NA, NA, NA, NA, NA, NA,
+    "Language of interview",            NA, NA, NA, NA, NA, NA,
+    "Native language of respondent",    NA, NA, NA, NA, NA, NA,
+    "Distance to healthcare facility",  NA, NA, NA, NA, NA, NA
+)
+
+```
+
+```{r}
+#| label: tbl-checklist-np
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in Nepal DHS"
+
+# We create the data of the NPDHS dataset
+npdhs |> 
+    flextable() |> 
+    set_header_labels(
+        var_name = "Variable labels",
+        np_1996 = "NPDHS 1996",
+        np_2001 = "NPDHS 2001",
+        np_2006 = "NPDHS 2006",
+        np_2011 = "NPDHS 2011",
+        np_2016 = "NPDHS 2016",
+        np_2022 = "NPDHS 2022"
+    )
+
+```
+
+# Pakistan variable checklist
+
+The variable availability for Pakistan is given below.
+
+```{r}
+#| label: data-checklist-pk
+#| echo: false
+#| output: false
+
+# We create the data of the PKDHS dataset
+pkdhs <- tribble(
+    ~var_name, ~pk_1990, ~pk_2006, ~pk_2012, ~pk_2017,
+    "Social group variables",           NA, NA, NA, NA,
+    "Religion",                         "v130", "v130", "v130", "v130",
+    "Caste",                            NA, NA, NA, NA,
+    "Ethnicity",                        NA, NA, NA, NA,
+    "Language of questionnaire",        NA, NA, NA, NA,
+    "Language of interview",            NA, NA, NA, NA,
+    "Native language of respondent",    NA, NA, NA, NA,
+    "Distance to healthcare facility",  NA, NA, NA, NA
+)
+
+```
+
+```{r}
+#| label: tbl-checklist-pk
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in Pakistan DHS"
+
+# We create the data of the PKDHS dataset
+pkdhs |> 
+    flextable() |> 
+    set_header_labels(
+        var_name = "Variable labels",
+        pk_1990 = "PKDHS 1990",
+        pk_2006 = "PKDHS 2006",
+        pk_2012 = "PKDHS 2012",
+        pk_2017 = "PKDHS 2017"
+    )
+
+```
+

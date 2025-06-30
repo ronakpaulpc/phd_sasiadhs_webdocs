@@ -4,7 +4,7 @@ title: "Afghanistan DHS data dictionary"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -75,8 +75,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  # font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -120,15 +123,28 @@ afpr_raw <- read_rds(
 #| tbl-cap: "Afghanistan DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-afbr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
+afbr_raw |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from afir_tmp_intro
+  left_join(
+    afir_raw |> 
+      mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+      select(year, n_women),
+    by = join_by(svy_year == year)
+  ) |> 
   # Join vars from afhr_tmp_intro
   left_join(
-    afhr_raw |> select(svy_year, n_households),
+    afhr_raw |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from afpr_tmp_intro
   left_join(
-    afpr_raw |> select(svy_year, n_persons),
+    afpr_raw |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble
@@ -139,8 +155,7 @@ afbr_raw |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all") |> 
-  autofit()
+  align(align = "left", part = "all")
 
 ```
 
@@ -157,7 +172,7 @@ dadict_basic <- function(df) {
   # create data dictionary
   labelled::lookfor(details = "basic") |> 
   # keep only the required columns
-  select(-c(levels, value_labels)) |> 
+  select(-c(pos, levels, value_labels)) |> 
   # for correctly viewing the range column in data dictionary
   labelled::convert_list_columns_to_character()
 }
@@ -180,10 +195,28 @@ Here we check the data dictionary of Afghanistan BR 2015 dataset.
 # We create the data dictionary of the afbr 2015 dataset.
 afbr_raw$afbr_data$afbr_2015 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "afbr",
+    svy_year = 2015,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-afbr-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(afbr_raw)
+# Clean unused memory
+gc()
 
 ```
 
@@ -203,7 +236,13 @@ Here we check the data dictionary of Afghanistan IR 2015 dataset.
 # We create the data dictionary of the afir 2015 dataset.
 afir_raw$afir_data$afir_2015 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "afir",
+    svy_year = 2015,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -216,7 +255,7 @@ afir_raw$afir_data$afir_2015 |>
 #| output: false
 
 # Remove data from memory
-remove(afir_2015)
+remove(afir_raw)
 # Clean unused memory
 gc()
 
@@ -238,10 +277,28 @@ Here we check the data dictionary of Afghanistan HR 2015 dataset.
 # We create the data dictionary of the afhr 2015 dataset.
 afhr_raw$afhr_data$afhr_2015 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "afhr",
+    svy_year = 2015,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
+
+```
+
+```{r}
+#| label: remove-afhr-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(afhr_raw)
+# Clean unused memory
+gc()
 
 ```
 
@@ -261,13 +318,30 @@ Here we check the data dictionary of Afghanistan PR 2015 dataset.
 # We create the data dictionary of the afpr 2015 dataset.
 afpr_raw$afpr_data$afpr_2015 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "afpr",
+    svy_year = 2015,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
 
 ```
 
+```{r}
+#| label: remove-afpr-2015
+#| echo: false
+#| output: false
+
+# Remove data from memory
+remove(afpr_raw)
+# Clean unused memory
+gc()
+
+```
 
 
 

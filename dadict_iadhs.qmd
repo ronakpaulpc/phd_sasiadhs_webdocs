@@ -4,7 +4,7 @@ title: "India DHS data dictionary"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -75,8 +75,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
-  # font.family = "Helvetica",
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -99,19 +102,19 @@ This document contains variable details for the following India DHS surveys:
 #| echo: false
 #| output: false
 
-# Here we temporarily import the tibbles for sample size table creation
-# Importing the iahr nested tibble
-iahr_raw <- read_rds(
-  file = here("website_data", "iahr1_nest0.rds")
-)
-# Importing the iahr nested tibble
-iahr_raw <- read_rds(
-  file = here("website_data", "iahr1_nest0.rds")
-)
-# Importing the iapr nested tibble
-iapr_raw <- read_rds(
-  file = here("website_data", "iapr1_nest0.rds")
-)
+# # Here we temporarily import the tibbles for sample size table creation
+# # Importing the iahr nested tibble
+# iahr_raw <- read_rds(
+#   file = here("website_data", "iahr1_nest0.rds")
+# )
+# # Importing the iahr nested tibble
+# iahr_raw <- read_rds(
+#   file = here("website_data", "iahr1_nest0.rds")
+# )
+# # Importing the iapr nested tibble
+# iapr_raw <- read_rds(
+#   file = here("website_data", "iapr1_nest0.rds")
+# )
 
 ```
 
@@ -122,28 +125,40 @@ iapr_raw <- read_rds(
 #| output: false
 #| tbl-cap: "India DHS datasets and their sample size to be used for pooling"
 
-# Creating the table of surveys to be used for pooling
-iahr_raw |> select(c(ctr_name, svy_year, n_births)) |> 
-  # Join vars from iahr_tmp_intro
-  left_join(
-    iahr_raw |> select(svy_year, n_households),
-    by = join_by(svy_year)
-  ) |> 
-  # Join vars from iapr_tmp_intro
-  left_join(
-    iapr_raw |> select(svy_year, n_persons),
-    by = join_by(svy_year)
-  ) |> 
-  # convert nested tibble to simple tibble
-  unnest(cols = c()) |> 
-  mutate(
-    ccode = row_number(), 
-    .before = ctr_name
-  ) |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all") |> 
-  autofit()
+# # Creating the table of surveys to be used for pooling
+# iabr_raw |> 
+#   mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+#   select(c(ctr_name, svy_year, n_births)) |> 
+#   # Join vars from iair_tmp_intro
+#   left_join(
+#     iair_raw |> 
+#       mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+#       select(year, n_women),
+#     by = join_by(svy_year == year)
+#   ) |> 
+#   # Join vars from iahr_tmp_intro
+#   left_join(
+#     iahr_raw |> 
+#       mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+#       select(svy_year, n_households),
+#     by = join_by(svy_year)
+#   ) |> 
+#   # Join vars from iapr_tmp_intro
+#   left_join(
+#     iapr_raw |> 
+#       mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+#       select(svy_year, n_persons),
+#     by = join_by(svy_year)
+#   ) |> 
+#   # convert nested tibble to simple tibble
+#   unnest(cols = c()) |> 
+#   mutate(
+#     ccode = row_number(), 
+#     .before = ctr_name
+#   ) |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -162,7 +177,7 @@ dadict_basic <- function(df) {
   # create data dictionary
   labelled::lookfor(details = "basic") |> 
   # keep only the required columns
-  select(-c(levels, value_labels)) |> 
+  select(-c(pos, levels, value_labels)) |> 
   # for correctly viewing the range column in data dictionary
   labelled::convert_list_columns_to_character()
 }
@@ -287,16 +302,16 @@ Here we check the data dictionary of India BR 2015 dataset.
 #| echo: false
 #| output: true
 
-# Import the dataset.
-iabr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2015.dta"))
-
-# We create the data dictionary of the iabr 2015 dataset.
-iabr_2015 |>
-  # generate basic data dictionary 
-  dadict_basic() |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all")
+# # Import the dataset.
+# iabr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2015.dta"))
+# 
+# # We create the data dictionary of the iabr 2015 dataset.
+# iabr_2015 |>
+#   # generate basic data dictionary 
+#   dadict_basic() |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -306,10 +321,10 @@ iabr_2015 |>
 #| echo: false
 #| output: false
 
-# Remove data from memory
-remove(iabr_2015)
-# Clean unused memory
-gc()
+# # Remove data from memory
+# remove(iabr_2015)
+# # Clean unused memory
+# gc()
 
 ```
 
@@ -325,16 +340,16 @@ Here we check the data dictionary of India BR 2019 dataset.
 #| echo: false
 #| output: true
 
-# Import the dataset.
-iabr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2019.dta"))
-
-# We create the data dictionary of the iabr 2019 dataset.
-iabr_2019 |>
-  # generate basic data dictionary 
-  dadict_basic() |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all")
+# # Import the dataset.
+# iabr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2019.dta"))
+# 
+# # We create the data dictionary of the iabr 2019 dataset.
+# iabr_2019 |>
+#   # generate basic data dictionary 
+#   dadict_basic() |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -344,10 +359,10 @@ iabr_2019 |>
 #| echo: false
 #| output: false
 
-# Remove data from memory
-remove(iabr_2019)
-# Clean unused memory
-gc()
+# # Remove data from memory
+# remove(iabr_2019)
+# # Clean unused memory
+# gc()
 
 ```
 
@@ -469,16 +484,16 @@ Here we check the data dictionary of India IR 2015 dataset.
 #| echo: false
 #| output: true
 
-# Import the dataset.
-iair_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2015.dta"))
-
-# We create the data dictionary of the iair 2015 dataset.
-iair_2015 |>
-  # generate basic data dictionary 
-  dadict_basic() |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all")
+# # Import the dataset.
+# iair_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2015.dta"))
+# 
+# # We create the data dictionary of the iair 2015 dataset.
+# iair_2015 |>
+#   # generate basic data dictionary 
+#   dadict_basic() |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -488,10 +503,10 @@ iair_2015 |>
 #| echo: false
 #| output: false
 
-# Remove data from memory
-remove(iair_2015)
-# Clean unused memory
-gc()
+# # Remove data from memory
+# remove(iair_2015)
+# # Clean unused memory
+# gc()
 
 ```
 
@@ -507,16 +522,16 @@ Here we check the data dictionary of India IR 2019 dataset.
 #| echo: false
 #| output: true
 
-# Import the dataset.
-iair_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2019.dta"))
-
-# We create the data dictionary of the iair 2019 dataset.
-iair_2019 |>
-  # generate basic data dictionary 
-  dadict_basic() |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all")
+# # Import the dataset.
+# iair_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2019.dta"))
+# 
+# # We create the data dictionary of the iair 2019 dataset.
+# iair_2019 |>
+#   # generate basic data dictionary 
+#   dadict_basic() |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -526,10 +541,10 @@ iair_2019 |>
 #| echo: false
 #| output: false
 
-# Remove data from memory
-remove(iair_2019)
-# Clean unused memory
-gc()
+# # Remove data from memory
+# remove(iair_2019)
+# # Clean unused memory
+# gc()
 
 ```
 
@@ -651,16 +666,16 @@ Here we check the data dictionary of India HR 2015 dataset.
 #| echo: false
 #| output: true
 
-# Import the dataset.
-iahr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2015.dta"))
-
-# We create the data dictionary of the iahr 2015 dataset.
-iahr_2015 |>
-  # generate basic data dictionary 
-  dadict_basic() |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all")
+# # Import the dataset.
+# iahr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2015.dta"))
+# 
+# # We create the data dictionary of the iahr 2015 dataset.
+# iahr_2015 |>
+#   # generate basic data dictionary 
+#   dadict_basic() |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -670,10 +685,10 @@ iahr_2015 |>
 #| echo: false
 #| output: false
 
-# Remove data from memory
-remove(iahr_2015)
-# Clean unused memory
-gc()
+# # Remove data from memory
+# remove(iahr_2015)
+# # Clean unused memory
+# gc()
 
 ```
 
@@ -689,16 +704,16 @@ Here we check the data dictionary of India HR 2019 dataset.
 #| echo: false
 #| output: true
 
-# Import the dataset.
-iahr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2019.dta"))
-
-# We create the data dictionary of the iahr 2019 dataset.
-iahr_2019 |>
-  # generate basic data dictionary 
-  dadict_basic() |> 
-  # convert to flextable object
-  qflextable() |> 
-  align(align = "left", part = "all")
+# # Import the dataset.
+# iahr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2019.dta"))
+# 
+# # We create the data dictionary of the iahr 2019 dataset.
+# iahr_2019 |>
+#   # generate basic data dictionary 
+#   dadict_basic() |> 
+#   # convert to flextable object
+#   qflextable() |> 
+#   align(align = "left", part = "all")
 
 ```
 
@@ -708,10 +723,10 @@ iahr_2019 |>
 #| echo: false
 #| output: false
 
-# Remove data from memory
-remove(iahr_2019)
-# Clean unused memory
-gc()
+# # Remove data from memory
+# remove(iahr_2019)
+# # Clean unused memory
+# gc()
 
 ```
 

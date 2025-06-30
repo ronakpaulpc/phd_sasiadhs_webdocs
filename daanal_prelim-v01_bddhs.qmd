@@ -4,7 +4,7 @@ title: "BDDHS preliminary data analysis"
 
 # Getting started
 
-First we load the required packages.
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
 
 ```{r}
 #| label: load-packages
@@ -82,9 +82,12 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-    font.size = 12, 
-    # font.family = "Aptos",
-    theme_fun = theme_vanilla
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
+  theme_fun = theme_vanilla
 )
 
 ```
@@ -128,15 +131,21 @@ bdpr1_tmp_intro <- read_rds(
 #| tbl-cap: "Bangladesh DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-bdbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |> 
+bdbr1_tmp_intro |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
     # Join vars from bdhr_tmp_intro
     left_join(
-        bdhr1_tmp_intro |> select(svy_year, n_households),
+        bdhr1_tmp_intro |> 
+          mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+          select(svy_year, n_households),
         by = join_by(svy_year)
     ) |> 
     # Join vars from bdpr_tmp_intro
     left_join(
-        bdpr1_tmp_intro |> select(svy_year, n_persons),
+        bdpr1_tmp_intro |> 
+          mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+          select(svy_year, n_persons),
         by = join_by(svy_year)
     ) |> 
     # convert nested tibble to simple tibble
