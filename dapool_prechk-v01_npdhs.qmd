@@ -280,7 +280,7 @@ The women's weight variables are in numeric class and have no missing values. Th
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Nepal birth history recode (br) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Nepal birth history recode (BR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-npbr-idvars
@@ -1747,7 +1747,7 @@ npbr1_pre_tmp0$npbr_data$npbr_2022 |>
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Nepal household recode (hr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Nepal household recode (HR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-nphr-idvars
@@ -2015,7 +2015,7 @@ Clearly, the value label codes are same in all nphr rounds. However, the value l
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Nepal person recode (pr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Nepal person recode (PR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-nppr-idvars

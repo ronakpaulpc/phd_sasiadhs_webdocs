@@ -282,7 +282,7 @@ The women's weight variables are in numeric class and have no missing values. Ho
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Pakistan birth history recode (br) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Pakistan birth history recode (BR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-pkbr-idvars
@@ -1475,7 +1475,7 @@ We find that none of the year variables have the correct values. Just look at th
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Pakistan household recode (hr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Pakistan household recode (HR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-pkhr-idvars
@@ -1682,7 +1682,7 @@ Clearly, the value label codes are same in all pkhr rounds. However, the value l
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Pakistan person recode (pr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Pakistan person recode (PR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-pkpr-idvars

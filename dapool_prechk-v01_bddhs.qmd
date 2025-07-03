@@ -281,7 +281,7 @@ The women's weight variables are in numeric class and have no missing values. Th
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Bangladesh birth history recode (br) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Bangladesh birth history recode (BR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-bdbr-idvars
@@ -1693,7 +1693,7 @@ bdbr1_pre_tmp0$bdbr_data$bdbr_2007 |>
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Bangladesh household recode (hr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Bangladesh household recode (HR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-bdhr-idvars
@@ -1902,7 +1902,7 @@ The value labels are similar across the bdhr rounds with minor differences. Note
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Bangladesh person recode (pr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Bangladesh person recode (PR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-bdpr-idvars

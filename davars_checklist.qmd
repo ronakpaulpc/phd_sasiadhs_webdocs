@@ -166,8 +166,8 @@ afdhs <- tribble(
 #| output: true
 #| tbl-cap: "Checklist of variables in Afghanistan DHS"
 
-# We create the flextable of the AFDHS dataset
-afdhs |> 
+# Create the flextable
+afdhs_ft <- afdhs |> 
   flextable() |> 
   set_header_labels(
     var_name = "Variable labels",
@@ -178,7 +178,10 @@ afdhs |>
   italic(i = c(1, 10, 14, 23, 31, 35, 42, 49), part = "body") |> 
   # apply green background to rows with non-missing values
   bg(i = ~ !is.na(af_2015), j = 3:(ncol(afdhs)), bg = "lightgreen")
-  
+
+# Print the flextable
+afdhs_ft
+
 ```
 
 # Bangladesh variable checklist
@@ -204,7 +207,7 @@ bddhs <- tribble(
     "Birth order",                      "bord", "bord", "bord", "bord", "bord", "bord", "bord", "bord", "bord", 
     "Sub-national region vars",         NA, NA, NA, NA, NA, NA, NA, NA, NA, 
     "Region/Division",                  "v024", "v024", "v024", "v024", "v024", "v024", "v024", "v024", "v024", 
-    "District of residence",            "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", 
+    "District of residence",            "sdistr", "sdist", NA, NA, NA, NA, NA, NA, "sdist", 
     "Ecological region",                NA, NA, NA, NA, NA, NA, NA, NA, NA, 
     "Birth history variables",          NA, NA, NA, NA, NA, NA, NA, NA, NA, 
     "Survival status of child",         "b5", "b5", "b5", "b5", "b5", "b5", "b5", "b5", "b5", 
@@ -220,9 +223,9 @@ bddhs <- tribble(
     "Highest education level",          "v106", "v106", "v106", "v106", "v106", "v106", "v106", "v106", "v106", 
     "Current marital status",           "v501", "v501", "v501", "v501", "v501", "v501", "v501", "v501", "v501", 
     "Partner's education level",        "v701", "v701", "v701", "v701", "v701", "v701", "v701", "v701", "v701", 
-    "Mother's anemia level",            NA, NA, NA, NA, NA, NA, NA, NA, NA, 
-    "Respondent's weight in kg",        NA, NA, NA, NA, NA, NA, NA, NA, NA, 
-    "Respondent's height in cm",        NA, NA, NA, NA, NA, NA, NA, NA, NA, 
+    "Mother's anemia level",            NA, NA, NA, NA, NA, "v457", NA, NA, NA, 
+    "Respondent's weight in kg",        NA, NA, "v437", "v437", "v437", "v437", "v437", "v437", "v437", 
+    "Respondent's height in cm",        NA, NA, "v438", "v438", "v438", "v438", "v438", "v438", "v438", 
     "Household-level variables",        NA, NA, NA, NA, NA, NA, NA, NA, NA, 
     "Sex of household head",            "v151", "v151", "v151", "v151", "v151", "v151", "v151", "v151", "v151", 
     "Age of household head",            "v152", "v152", "v152", "v152", "v152", "v152", "v152", "v152", "v152", 
@@ -231,9 +234,9 @@ bddhs <- tribble(
     "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130",
     "Caste",                            NA, NA, NA, NA, NA, NA, NA, NA, NA,
     "Ethnicity",                        NA, NA, NA, NA, NA, NA, NA, NA, NA,
-    "Language of questionnaire",        NA, NA, NA, NA, NA, NA, NA, NA, NA,
-    "Language of interview",            NA, NA, NA, NA, NA, NA, NA, NA, NA,
-    "Native language of respondent",    NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Language of questionnaire",        NA, NA, NA, NA, NA, NA, NA, NA, "v045a",
+    "Language of interview",            NA, NA, NA, NA, NA, NA, NA, NA, "v045b",
+    "Native language of respondent",    NA, NA, NA, NA, NA, NA, NA, NA, "v045c",
     "Family-structure variables",       NA, NA, NA, NA, NA, NA, NA, NA, NA,
     "Relationship to hh head",          "hv101", "hv101", "hv101", "hv101", "hv101", "hv101", "hv101", "hv101", "hv101", 
     "De jure residents",                "hv102", "hv102", "hv102", "hv102", "hv102", "hv102", "hv102", "hv102", "hv102", 
@@ -242,9 +245,9 @@ bddhs <- tribble(
     "Age of hh member",                 "hv105", "hv105", "hv105", "hv105", "hv105", "hv105", "hv105", "hv105", "hv105", 
     "Highest education of hh member",   "hv106", "hv106", "hv106", "hv106", "hv106", "hv106", "hv106", "hv106", "hv106", 
     "Community-level variables",        NA, NA, NA, NA, NA, NA, NA, NA, NA,
-    "Distance to healthcare facility",  "v467", "v467", "v467", "v467", "v467", "v467", "v467", "v467", "v467", 
-    "Covered by health insurance",      "v481", "v481", "v481", "v481", "v481", "v481", "v481", "v481", "v481", 
-    "Cluster altitude",                 NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Distance to healthcare facility",  NA, NA, NA, NA, NA, NA, NA, NA, NA, 
+    "Covered by health insurance",      NA, NA, NA, NA, NA, NA, NA, "v481", "v481", 
+    "Cluster altitude",                 NA, NA, NA, NA, NA, "v040", NA, "v040", "v040",
 ) |> 
   mutate(pos = row_number(), .before = 1)
 
@@ -259,7 +262,7 @@ bddhs <- tribble(
 # Define the column names to check for non-missing values
 year_cols <- names(bddhs)[grepl("^bd_", names(bddhs))]
 
-# Create flextable
+# Create the flextable
 bddhs_ft <- bddhs |> 
   flextable() |> 
   set_header_labels(
@@ -284,12 +287,14 @@ for (col in year_cols) {
     bg(i = which(!is.na(bddhs[[col]])), j = col, bg = "lightgreen")
 }
 
-# Print flextable
+# Print the flextable
 bddhs_ft
 
 ```
 
 # India variable checklist
+
+#### START FROM HERE ####
 
 The variable availability for India is given below.
 
@@ -367,7 +372,7 @@ iadhs <- tribble(
 # Define the column names to check for non-missing values
 year_cols <- names(iadhs)[grepl("^ia_", names(iadhs))]
 
-# We create the data of the IADHS dataset
+# Create the flextable
 iadhs_ft <- iadhs |> 
     flextable() |> 
     set_header_labels(
@@ -388,7 +393,7 @@ for (col in year_cols) {
     bg(i = which(!is.na(iadhs[[col]])), j = col, bg = "lightgreen")
 }
 
-# Print flextable
+# Print the flextable
 iadhs_ft
 
 ```
@@ -471,7 +476,7 @@ mvdhs <- tribble(
 # Define the column names to check for non-missing values
 year_cols <- names(mvdhs)[grepl("^mv_", names(mvdhs))]
 
-# We create the data of the MVDHS dataset
+# Create the flextable
 mvdhs_ft <- mvdhs |> 
     flextable() |> 
     set_header_labels(
@@ -489,7 +494,7 @@ for (col in year_cols) {
     bg(i = which(!is.na(mvdhs[[col]])), j = col, bg = "lightgreen")
 }
 
-# Print flextable
+# Print the flextable
 mvdhs_ft
 
 ```
@@ -572,7 +577,7 @@ npdhs <- tribble(
 # Define the column names to check for non-missing values
 year_cols <- names(npdhs)[grepl("^np_", names(npdhs))]
 
-# We create the data of the NPDHS dataset
+# Create the flextable
 npdhs_ft <- npdhs |> 
     flextable() |> 
     set_header_labels(
@@ -594,7 +599,7 @@ for (col in year_cols) {
     bg(i = which(!is.na(npdhs[[col]])), j = col, bg = "lightgreen")
 }
 
-# Print flextable
+# Print the flextable
 npdhs_ft
 
 ```
@@ -677,7 +682,7 @@ pkdhs <- tribble(
 # Define the column names to check for non-missing values
 year_cols <- names(pkdhs)[grepl("^pk_", names(pkdhs))]
 
-# We create the data of the PKDHS dataset
+# Create the flextable
 pkdhs_ft <- pkdhs |> 
     flextable() |> 
     set_header_labels(
@@ -697,7 +702,7 @@ for (col in year_cols) {
     bg(i = which(!is.na(pkdhs[[col]])), j = col, bg = "lightgreen")
 }
 
-# Print flextable
+# Print the flextable
 pkdhs_ft
 
 ```

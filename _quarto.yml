@@ -43,6 +43,8 @@ website:
           href: dapool_prechk-v01_npdhs.qmd
         - text: Pakistan DHS Pre-checks
           href: dapool_prechk-v01_pkdhs.qmd
+      - text: Pooled data dictionary
+        href: dadict_postchk_sasiadhs.qmd
       - text: Preliminary Data Analysis
         menu:
         - text: Bangladesh DHS Prelim
@@ -52,7 +54,7 @@ website:
   sidebar: 
     style: docked
     background: none
-    collapse-level: 1
+    collapse-level: 2
     contents: 
       - section: "Raw Data Dictionaries"
         contents: 
@@ -80,6 +82,8 @@ website:
             href: dapool_prechk-v01_npdhs.qmd
           - text: Pakistan DHS Pre-checks
             href: dapool_prechk-v01_pkdhs.qmd
+      - text: Pooled data dictionary
+        href: dadict_postchk_sasiadhs.qmd
       - section: "Preliminary Data Analysis"
         contents:
           - text: Bangladesh DHS Prelim

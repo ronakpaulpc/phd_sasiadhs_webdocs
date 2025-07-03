@@ -279,7 +279,7 @@ The women's weight variables are in numeric class and have no missing values. Th
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Maldives birth history recode (br) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the variables using which we will prepare the ID variables for the pooled Maldives birth history recode (BR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-mvbr-idvars
@@ -1529,7 +1529,7 @@ We can say that the year variables have correct values, especially by looking at
 
 ## Checking the ID variables before harmonization
 
-Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Maldives person recode (pr) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
+Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Maldives person recode (PR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 
 ```{r}
 #| label: create-dict-mvpr-idvars
