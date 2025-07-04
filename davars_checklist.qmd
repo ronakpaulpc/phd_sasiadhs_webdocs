@@ -177,7 +177,7 @@ afdhs_ft <- afdhs |>
   bold(i = c(1, 10, 14, 23, 31, 35, 42, 49), part = "body") |> 
   italic(i = c(1, 10, 14, 23, 31, 35, 42, 49), part = "body") |> 
   # apply green background to rows with non-missing values
-  bg(i = ~ !is.na(af_2015), j = 3:(ncol(afdhs)), bg = "lightgreen")
+  bg(i = ~ !is.na(af_2015), j = 3:(ncol(afdhs)), bg = "darkseagreen1")
 
 # Print the flextable
 afdhs_ft
@@ -284,7 +284,7 @@ bddhs_ft <- bddhs |>
 # Loop through each year column and apply bg to non-NA cells
 for (col in year_cols) {
   bddhs_ft <- bddhs_ft |>
-    bg(i = which(!is.na(bddhs[[col]])), j = col, bg = "lightgreen")
+    bg(i = which(!is.na(bddhs[[col]])), j = col, bg = "darkseagreen1")
 }
 
 # Print the flextable
@@ -392,7 +392,7 @@ iadhs_ft <- iadhs |>
 # Loop through each year column and apply bg to non-NA cells
 for (col in year_cols) {
   iadhs_ft <- iadhs_ft |>
-    bg(i = which(!is.na(iadhs[[col]])), j = col, bg = "lightgreen")
+    bg(i = which(!is.na(iadhs[[col]])), j = col, bg = "darkseagreen1")
 }
 
 # Print the flextable
@@ -500,7 +500,7 @@ mvdhs_ft <- mvdhs |>
 # Loop through each year column and apply bg to non-NA cells
 for (col in year_cols) {
   mvdhs_ft <- mvdhs_ft |>
-    bg(i = which(!is.na(mvdhs[[col]])), j = col, bg = "lightgreen")
+    bg(i = which(!is.na(mvdhs[[col]])), j = col, bg = "darkseagreen1")
 }
 
 # Print the flextable
@@ -607,7 +607,7 @@ npdhs_ft <- npdhs |>
 # Loop through each year column and apply bg to non-NA cells
 for (col in year_cols) {
   npdhs_ft <- npdhs_ft |>
-    bg(i = which(!is.na(npdhs[[col]])), j = col, bg = "lightgreen")
+    bg(i = which(!is.na(npdhs[[col]])), j = col, bg = "darkseagreen1")
 }
 
 # Print the flextable
@@ -719,7 +719,7 @@ pkdhs_ft <- pkdhs |>
 # Loop through each year column and apply bg to non-NA cells
 for (col in year_cols) {
   pkdhs_ft <- pkdhs_ft |>
-    bg(i = which(!is.na(pkdhs[[col]])), j = col, bg = "lightgreen")
+    bg(i = which(!is.na(pkdhs[[col]])), j = col, bg = "darkseagreen1")
 }
 
 # Print the flextable
