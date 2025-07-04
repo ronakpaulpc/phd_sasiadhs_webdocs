@@ -90,6 +90,7 @@ set_flextable_defaults(
 We document the variable labels and other contents of all variables across all the India Demographic and Health Survey (DHS) datasets here. This will be primary document for viewing what variables are available for use in PhD research. We check the variable labels before running the pooling code in "daprep-v01_iadhs.R".
 
 **NOTE:** India DHS rounds 4 and 5 are huge in size and RStudio and Widows OS crashes when all the nested tibbles are loaded at once.
+
 **SOLU:** Keeping this in mind, we will re-order the steps to import each dataset individually, create their dictionaries and remove them from memory.
 
 We need to import and export each IR, BR, HR and PR dataset individually. Then we will export the raw versions and create their data dictionary here. After manually inspecting the data dictionaries we can remove the vars not required and make the datasets lighter. Then we will re-export and continue with the data preparation steps as usual.
@@ -162,7 +163,7 @@ This document contains variable details for the following India DHS surveys:
 
 ```
 
-**NOTE:** The @tbl-detail-survey-rounds is based on nested tibbles that are created after examining the data dictionaries that we have created below.
+**NOTE:** The above table is based on nested tibbles that are created after examining the data dictionaries that we have created below.
 
 Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
 
@@ -204,6 +205,12 @@ iabr_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_1992.DTA"))
 iabr_1992 |>
   # generate basic data dictionary 
   dadict_basic() |>  
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iabr",
+    svy_year = 1992,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -238,6 +245,12 @@ iabr_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_1998.dta"))
 iabr_1998 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iabr",
+    svy_year = 1998,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -272,6 +285,12 @@ iabr_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iabr_2005.dta"))
 iabr_2005 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iabr",
+    svy_year = 2005,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -307,10 +326,16 @@ Here we check the data dictionary of India BR 2015 dataset.
 # 
 # # We create the data dictionary of the iabr 2015 dataset.
 # iabr_2015 |>
-#   # generate basic data dictionary 
+#   # generate basic data dictionary
 #   dadict_basic() |> 
+#   # include survey name and year for reference
+#   mutate(
+#     svy_name = "iabr",
+#     svy_year = 2015,
+#     .before = 1
+#   ) |> 
 #   # convert to flextable object
-#   qflextable() |> 
+#   qflextable() |>
 #   align(align = "left", part = "all")
 
 ```
@@ -332,7 +357,7 @@ Here we check the data dictionary of India BR 2015 dataset.
 
 Here we check the data dictionary of India BR 2019 dataset.
 
-**NOTE:** We are unable to show this due to lack of computing memory.
+**NOTE:** We are unable to show this due to insufficient computational resources.
 
 ```{r}
 #| eval: false
@@ -345,10 +370,16 @@ Here we check the data dictionary of India BR 2019 dataset.
 # 
 # # We create the data dictionary of the iabr 2019 dataset.
 # iabr_2019 |>
-#   # generate basic data dictionary 
+#   # generate basic data dictionary
 #   dadict_basic() |> 
+#   # include survey name and year for reference
+#   mutate(
+#     svy_name = "iabr",
+#     svy_year = 2019,
+#     .before = 1
+#   ) |> 
 #   # convert to flextable object
-#   qflextable() |> 
+#   qflextable() |>
 #   align(align = "left", part = "all")
 
 ```
@@ -385,7 +416,13 @@ iair_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iair_1992.DTA"))
 # We create the data dictionary of the iair 1992 dataset.
 iair_1992 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iair",
+    svy_year = 1992,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -420,6 +457,12 @@ iair_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iair_1998.dta"))
 iair_1998 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iair",
+    svy_year = 1998,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -454,6 +497,12 @@ iair_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iair_2005.dta"))
 iair_2005 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iair",
+    svy_year = 2005,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -489,10 +538,16 @@ Here we check the data dictionary of India IR 2015 dataset.
 # 
 # # We create the data dictionary of the iair 2015 dataset.
 # iair_2015 |>
-#   # generate basic data dictionary 
+#   # generate basic data dictionary
 #   dadict_basic() |> 
+#   # include survey name and year for reference
+#   mutate(
+#     svy_name = "iair",
+#     svy_year = 2015,
+#     .before = 1
+#   ) |> 
 #   # convert to flextable object
-#   qflextable() |> 
+#   qflextable() |>
 #   align(align = "left", part = "all")
 
 ```
@@ -527,10 +582,16 @@ Here we check the data dictionary of India IR 2019 dataset.
 # 
 # # We create the data dictionary of the iair 2019 dataset.
 # iair_2019 |>
-#   # generate basic data dictionary 
+#   # generate basic data dictionary
 #   dadict_basic() |> 
+#   # include survey name and year for reference
+#   mutate(
+#     svy_name = "iair",
+#     svy_year = 2019,
+#     .before = 1
+#   ) |> 
 #   # convert to flextable object
-#   qflextable() |> 
+#   qflextable() |>
 #   align(align = "left", part = "all")
 
 ```
@@ -567,7 +628,13 @@ iahr_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_1992.DTA"))
 # We create the data dictionary of the iahr 1992 dataset.
 iahr_1992 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iahr",
+    svy_year = 1992,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -602,6 +669,12 @@ iahr_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_1998.dta"))
 iahr_1998 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iahr",
+    svy_year = 1998,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -636,6 +709,12 @@ iahr_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iahr_2005.dta"))
 iahr_2005 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iahr",
+    svy_year = 2005,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -671,10 +750,16 @@ Here we check the data dictionary of India HR 2015 dataset.
 # 
 # # We create the data dictionary of the iahr 2015 dataset.
 # iahr_2015 |>
-#   # generate basic data dictionary 
+#   # generate basic data dictionary
 #   dadict_basic() |> 
+#   # include survey name and year for reference
+#   mutate(
+#     svy_name = "iahr",
+#     svy_year = 2015,
+#     .before = 1
+#   ) |> 
 #   # convert to flextable object
-#   qflextable() |> 
+#   qflextable() |>
 #   align(align = "left", part = "all")
 
 ```
@@ -709,10 +794,16 @@ Here we check the data dictionary of India HR 2019 dataset.
 # 
 # # We create the data dictionary of the iahr 2019 dataset.
 # iahr_2019 |>
-#   # generate basic data dictionary 
+#   # generate basic data dictionary
 #   dadict_basic() |> 
+#   # include survey name and year for reference
+#   mutate(
+#     svy_name = "iahr",
+#     svy_year = 2019,
+#     .before = 1
+#   ) |> 
 #   # convert to flextable object
-#   qflextable() |> 
+#   qflextable() |>
 #   align(align = "left", part = "all")
 
 ```
@@ -749,7 +840,13 @@ iapr_1992 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_1992.DTA"))
 # We create the data dictionary of the iapr 1992 dataset.
 iapr_1992 |>
   # generate basic data dictionary 
-  dadict_basic() |>  
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iapr",
+    svy_year = 1992,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -784,6 +881,12 @@ iapr_1998 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_1998.dta"))
 iapr_1998 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iapr",
+    svy_year = 1998,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -818,6 +921,12 @@ iapr_2005 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_2005.dta"))
 iapr_2005 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iapr",
+    svy_year = 2005,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -852,6 +961,12 @@ iapr_2015 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_2015.dta"))
 iapr_2015 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iapr",
+    svy_year = 2015,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -886,6 +1001,12 @@ iapr_2019 <- read_dta(here("website_data", "data_iadhs_stata", "iapr_2019.dta"))
 iapr_2019 |>
   # generate basic data dictionary 
   dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "iapr",
+    svy_year = 2019,
+    .before = 1
+  ) |> 
   # convert to flextable object
   qflextable() |> 
   align(align = "left", part = "all")
@@ -903,14 +1024,3 @@ remove(iapr_2019)
 gc()
 
 ```
-
-
-
-
-
-
-
-
-
-
-

@@ -87,7 +87,7 @@ set_flextable_defaults(
 
 # Introduction
 
-On this page we show the variable checklist of South Asian Demographic and Health Survey (DHS) datasets. This will be the primary document for viewing what variables are available for use in the DHS datasets in South Asia and across the countries. We check the variable availability from the raw data dictionaries and after that run the data pooling code. 
+On this page we show the variable checklist of South Asian Demographic and Health Survey (DHS) datasets. This will be the primary document for viewing what variables are available for use in the DHS datasets in South Asia and across the countries. We check the variable availability from the raw data dictionaries and after that run the data pooling code.
 
 Across all the checklists, we have dataset name in the table header row, variable label in the table col and variable name as records. If a variable is available in the dataset we give the variable name and if it's unavailable we keep the records as missing.
 
@@ -112,8 +112,8 @@ afdhs <- tribble(
     "Household number",                 "v002",
     "Respondent's line number",         "v003",
     "Birth order",                      "bord",
-    "Sub-national region vars",         NA,
-    "Region/Division",                  "v024",
+    "Subnational region variables",     NA,
+    "Region/Division/State",            "v024",
     "District of residence",            "sdistrict",
     "Ecological region",                NA,
     "Birth history variables",          NA,
@@ -139,8 +139,8 @@ afdhs <- tribble(
     "Wealth index quintile",            "v190",
     "Social group variables",           NA,
     "Religion",                         NA,
-    "Caste",                            NA,
     "Ethnicity",                        "v131",
+    "Caste",                            NA,    
     "Language of questionnaire",        NA,
     "Language of interview",            "v045b",
     "Native language of respondent",    "v045c",
@@ -204,9 +204,9 @@ bddhs <- tribble(
     "Cluster number",                   "v001", "v001", "v001", "v001", "v001", "v001", "v001", "v001", "v001", 
     "Household number",                 "v002", "v002", "v002", "v002", "v002", "v002", "v002", "v002", "v002", 
     "Respondent's line number",         "v003", "v003", "v003", "v003", "v003", "v003", "v003", "v003", "v003", 
-    "Birth order",                      "bord", "bord", "bord", "bord", "bord", "bord", "bord", "bord", "bord", 
-    "Sub-national region vars",         NA, NA, NA, NA, NA, NA, NA, NA, NA, 
-    "Region/Division",                  "v024", "v024", "v024", "v024", "v024", "v024", "v024", "v024", "v024", 
+    "Birth order",                      "bord", "bord", "bord", "bord", "bord", "bord", "bord", "bord", "bord",
+    "Subnational region variables",     NA, NA, NA, NA, NA, NA, NA, NA, NA, 
+    "Region/Division/State",            "v024", "v024", "v024", "v024", "v024", "v024", "v024", "v024", "v024", 
     "District of residence",            "sdistr", "sdist", NA, NA, NA, NA, NA, NA, "sdist", 
     "Ecological region",                NA, NA, NA, NA, NA, NA, NA, NA, NA, 
     "Birth history variables",          NA, NA, NA, NA, NA, NA, NA, NA, NA, 
@@ -232,8 +232,8 @@ bddhs <- tribble(
     "Wealth index quintile",            NA, NA, NA, "v190", "v190", "v190", "v190", "v190", "v190", 
     "Social group variables",           NA, NA, NA, NA, NA, NA, NA, NA, NA,
     "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130",
-    "Caste",                            NA, NA, NA, NA, NA, NA, NA, NA, NA,
     "Ethnicity",                        NA, NA, NA, NA, NA, NA, NA, NA, NA,
+    "Caste",                            NA, NA, NA, NA, NA, NA, NA, NA, NA,
     "Language of questionnaire",        NA, NA, NA, NA, NA, NA, NA, NA, "v045a",
     "Language of interview",            NA, NA, NA, NA, NA, NA, NA, NA, "v045b",
     "Native language of respondent",    NA, NA, NA, NA, NA, NA, NA, NA, "v045c",
@@ -292,9 +292,11 @@ bddhs_ft
 
 ```
 
-# India variable checklist
+**NOTE:**
 
-#### START FROM HERE ####
+-   In Bangladesh DHS 1993, 1996 and 1996 the wealth index variables is available in the HR files.
+
+# India variable checklist
 
 The variable availability for India is given below.
 
@@ -315,9 +317,9 @@ iadhs <- tribble(
     "Household number",                 "v002", "v002", "v002", "v002", "v002", 
     "Respondent's line number",         "v003", "v003", "v003", "v003", "v003", 
     "Birth order",                      "bord", "bord", "bord", "bord", "bord", 
-    "Sub-national region vars",         NA, NA, NA, NA, NA,
-    "Region/Division",                  "v024", "v024", "v024", "v024", "v024", 
-    "District of residence",            "sdistrict", "sdistri", "sdistri", "sdistri", "sdistri", 
+    "Subnational region variables",     NA, NA, NA, NA, NA,
+    "Region/Division/State",            "v024", "v024", "v024", "v024", "v024", 
+    "District of residence",            "shdist", "sdist", NA, "shdistri", "shdist", 
     "Ecological region",                NA, NA, NA, NA, NA,
     "Birth history variables",          NA, NA, NA, NA, NA,
     "Survival status of child",         "b5", "b5", "b5", "b5", "b5", 
@@ -342,11 +344,11 @@ iadhs <- tribble(
     "Wealth index quintile",            NA, NA, "v190", "v190", "v190", 
     "Social group variables",           NA, NA, NA, NA, NA,
     "Religion",                         "v130", "v130", "v130", "v130", "v130",
-    "Caste",                            "s116", "s116", "s116", "s116", "s116",
-    "Ethnicity",                        NA, NA, NA, NA, NA,
-    "Language of questionnaire",        NA, NA, NA, NA, NA,
-    "Language of interview",            NA, NA, NA, NA, NA,
-    "Native language of respondent",    NA, NA, NA, NA, NA,
+    "Ethnicity",                        "v131", "v131", NA, "v131", "v131",
+    "Caste",                            "shcaste", "sh40/sh41", "sh45/sh46", "sh35/sh36", "sh48/sh49",
+    "Language of questionnaire",        "slangqst", NA, NA, "slangq", "v045a",
+    "Language of interview",            "slangint", NA, NA, "slangi", "v045b",
+    "Native language of respondent",    "slangrsp", "slanguag", "slang", "slangrm", "v045c",
     "Family-structure variables",       NA, NA, NA, NA, NA,
     "Relationship to hh head",          "hv101", "hv101", "hv101", "hv101", "hv101", 
     "De jure residents",                "hv102", "hv102", "hv102", "hv102", "hv102", 
@@ -355,9 +357,9 @@ iadhs <- tribble(
     "Age of hh member",                 "hv105", "hv105", "hv105", "hv105", "hv105", 
     "Highest education of hh member",   "hv106", "hv106", "hv106", "hv106", "hv106", 
     "Community-level variables",        NA, NA, NA, NA, NA,
-    "Distance to healthcare facility",  "v467", "v467", "v467", "v467", "v467", 
-    "Covered by health insurance",      "v481", "v481", "v481", "v481", "v481", 
-    "Cluster altitude",                 NA, NA, NA, NA, NA
+    "Distance to healthcare facility",  NA, NA, NA, NA, NA,
+    "Covered by health insurance",      NA, NA, NA, "v481", "v481", 
+    "Cluster altitude",                 NA, "saltitud", "v040", "v040", "v040"
 ) |> 
   mutate(pos = row_number(), .before = 1)
 
@@ -398,6 +400,13 @@ iadhs_ft
 
 ```
 
+**NOTE:** Regarding the variable names and their corresponding datasets
+
+-   In India DHS 1992 caste variable is available only in the HR and PR files.
+-   Across all India DHS rounds ethnicity variable is similar to caste.
+-   The language-related variables are in the IR and BR files.
+-   In India DHS 1992 and 1998 the wealth index variables is available in the HR files.
+
 # Maldives variable checklist
 
 The variable availability for Maldives is given below.
@@ -419,9 +428,9 @@ mvdhs <- tribble(
     "Household number",                 "v002", "v002", 
     "Respondent's line number",         "v003", "v003", 
     "Birth order",                      "bord", "bord", 
-    "Sub-national region vars",         NA, NA,
-    "Region/Division",                  "v024", "v024", 
-    "District of residence",            "sdistrict", "sdistrict", 
+    "Subnational region variables",     NA, NA,
+    "Region/Division/State",            "v024", "v024", 
+    "District of residence",            NA, NA, 
     "Ecological region",                NA, NA, 
     "Birth history variables",          NA, NA, 
     "Survival status of child",         "b5", "b5", 
@@ -448,9 +457,9 @@ mvdhs <- tribble(
     "Religion",                         "v130", "v130",
     "Caste",                            NA, NA,
     "Ethnicity",                        NA, NA,
-    "Language of questionnaire",        NA, NA,
-    "Language of interview",            NA, NA,
-    "Native language of respondent",    NA, NA,
+    "Language of questionnaire",        NA, "v045a",
+    "Language of interview",            NA, "v045b",
+    "Native language of respondent",    NA, "v045c",
     "Family-structure variables",       NA, NA,
     "Relationship to hh head",          "hv101", "hv101",
     "De jure residents",                "hv102", "hv102",
@@ -459,8 +468,8 @@ mvdhs <- tribble(
     "Age of hh member",                 "hv105", "hv105",
     "Highest education of hh member",   "hv106", "hv106",
     "Community-level variables",        NA, NA,
-    "Distance to healthcare facility",  "v467", "v467", 
-    "Covered by health insurance",      "v481", "v481",
+    "Distance to healthcare facility",  NA, NA,
+    "Covered by health insurance",      NA, "v481",
     "Cluster altitude",                 NA, NA
 ) |> 
   mutate(pos = row_number(), .before = 1)
@@ -480,7 +489,7 @@ year_cols <- names(mvdhs)[grepl("^mv_", names(mvdhs))]
 mvdhs_ft <- mvdhs |> 
     flextable() |> 
     set_header_labels(
-        var_name = "Varmvble labels",
+        var_name = "Variable labels",
         mv_2009 = "MVDHS 2009",
         mv_2016 = "MVDHS 2016"
     ) |> 
@@ -501,6 +510,8 @@ mvdhs_ft
 
 # Nepal variable checklist
 
+#### START FROM HERE
+
 The variable availability for Nepal is given below.
 
 ```{r}
@@ -520,10 +531,10 @@ npdhs <- tribble(
     "Household number",                 "v002", "v002", "v002", "v002", "v002", "v002",
     "Respondent's line number",         "v003", "v003", "v003", "v003", "v003", "v003",
     "Birth order",                      "bord", "bord", "bord", "bord", "bord", "bord", 
-    "Sub-national region vars",         NA, NA, NA, NA, NA, NA,
-    "Region/Division",                  "v024", "v024", "v024", "v024", "v024", "v024",
-    "District of residence",            "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", "sdistrict", 
-    "Ecological region",                NA, NA, NA, NA, NA, NA,
+    "Subnational region variables",     NA, NA, NA, NA, NA, NA,
+    "Region/Division/State",            "v024", "v024", "v024", "v024", "v024", "v024",
+    "District of residence",            NA, "shdistr", "shdist", "shdistrict", "shdist", "shdist", 
+    "Ecological region",                "shez", "shreg1", "shreg1", "shecoreg", "shecoreg", "shecoreg",
     "Birth history variables",          NA, NA, NA, NA, NA, NA,
     "Survival status of child",         "b5", "b5", "b5", "b5", "b5", "b5", 
     "Child's age at death (cmc)",       "b7", "b7", "b7", "b7", "b7", "b7", 
@@ -547,11 +558,11 @@ npdhs <- tribble(
     "Wealth index quintile",            "v190", "v190", "v190", "v190", "v190", "v190",
     "Social group variables",           NA, NA, NA, NA, NA, NA,
     "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130",
-    "Caste",                            NA, NA, NA, NA, NA, NA,
-    "Ethnicity",                        NA, NA, NA, NA, NA, NA,
-    "Language of questionnaire",        NA, NA, NA, NA, NA, NA,
-    "Language of interview",            NA, NA, NA, NA, NA, NA,
-    "Native language of respondent",    NA, NA, NA, NA, NA, NA,
+    "Caste",                            "sh020", "sh27", "scaste", NA, NA, NA,
+    "Ethnicity",                        "v131", "v131", "v131", "v131", "v131", "v131",
+    "Language of questionnaire",        "slangq", "slangq", "sqlang", "slquest", "v045a", "v045a",
+    "Language of interview",            "slangi", "slangi", "silang", "slinterv", "v045b", "v045b",
+    "Native language of respondent",    "slangn", "slangr", "snlang", "slnative", "v045c", "v045c",
     "Family-structure variables",       NA, NA, NA, NA, NA, NA,
     "Relationship to hh head",          "hv101", "hv101", "hv101", "hv101", "hv101", "hv101",
     "De jure residents",                "hv102", "hv102", "hv102", "hv102", "hv102", "hv102",
@@ -559,10 +570,10 @@ npdhs <- tribble(
     "Sex of hh member",                 "hv104", "hv104", "hv104", "hv104", "hv104", "hv104",
     "Age of hh member",                 "hv105", "hv105", "hv105", "hv105", "hv105", "hv105",
     "Highest education of hh member",   "hv106", "hv106", "hv106", "hv106", "hv106", "hv106",
-    "Community-level variables",        NA, NA, NA, NA, NA, NA,
-    "Distance to healthcare facility",  "v467", "v467", "v467", "v467", "v467", "v467",  
-    "Covered by health insurance",      "v481", "v481", "v481", "v481", "v481", "v481", 
-    "Cluster altitude",                 NA, NA, NA, NA, NA, NA
+    "Community-level variables",        NA, NA, NA, NA, NA, NA, 
+    "Distance to healthcare facility",  NA, NA, NA, NA, NA, NA, 
+    "Covered by health insurance",      NA, NA, NA, NA, NA, "v481", 
+    "Cluster altitude",                 NA, NA, "v040", "v040", "v040", "v040"
 ) |> 
   mutate(pos = row_number(), .before = 1)
 
@@ -604,6 +615,15 @@ npdhs_ft
 
 ```
 
+**NOTE:** Regarding the variable names and their corresponding datasets
+
+-   In all Nepal DHS the district variable is available in the IR, HR and PR files. Here we quote the names from the HR and PR files.
+-   In all Nepal DHS the ecological region variable is available in the IR, HR and PR files. Here we quote the names from the HR and PR files.
+-   In all Nepal DHS rounds the ethnicity variable is similar to caste.
+-   The caste variable is available in the HR and PR files of 1996 and 2001 rounds and in the BR and IR files of 2006 round.
+-   The language-related variables are in the IR and BR files.
+-   In Nepal DHS 1996 and 2001 the wealth index variable is available in a separate file.
+
 # Pakistan variable checklist
 
 The variable availability for Pakistan is given below.
@@ -625,9 +645,9 @@ pkdhs <- tribble(
     "Household number",                 "v002", "v002", "v002", "v002",
     "Respondent's line number",         "v003", "v003", "v003", "v003",
     "Birth order",                      "bord", "bord", "bord", "bord",
-    "Sub-national region vars",         NA, NA, NA, NA,
-    "Region/Division",                  "v024", "v024", "v024", "v024",
-    "District of residence",            "sdistri", "sdistri", "sdistri", "sdistri",
+    "Subnational region variables",     NA, NA, NA, NA,
+    "Region/Division/State",            "v024", "v024", "v024", "v024",
+    "District of residence",            "sdist", "sdist", "sdist", "sdist",
     "Ecological region",                NA, NA, NA, NA,
     "Birth history variables",          NA, NA, NA, NA,
     "Survival status of child",         "b5", "b5", "b5", "b5",
@@ -653,10 +673,10 @@ pkdhs <- tribble(
     "Social group variables",           NA, NA, NA, NA,
     "Religion",                         NA, NA, NA, NA,
     "Caste",                            NA, NA, NA, NA,
-    "Ethnicity",                        NA, NA, NA, NA,
-    "Language of questionnaire",        NA, NA, NA, NA,
-    "Language of interview",            NA, NA, NA, NA,
-    "Native language of respondent",    NA, NA, NA, NA,
+    "Ethnicity",                        NA, NA, "v131", NA,
+    "Language of questionnaire",        "slang1", "slangq", "slangq", "v045a",
+    "Language of interview",            "slang2", "slangi", "slangi", "v045b",
+    "Native language of respondent",    "slang3", "slangw", "slangr", "v045c",
     "Family-structure variables",       NA, NA, NA, NA,
     "Relationship to hh head",          "hv101", "hv101", "hv101", "hv101",
     "De jure residents",                "hv102", "hv102", "hv102", "hv102",
@@ -665,8 +685,8 @@ pkdhs <- tribble(
     "Age of hh member",                 "hv105", "hv105", "hv105", "hv105",
     "Highest education of hh member",   "hv106", "hv106", "hv106", "hv106",
     "Community-level variables",        NA, NA, NA, NA,
-    "Distance to healthcare facility",  "v467", "v467", "v467", "v467", 
-    "Covered by health insurance",      "v481", "v481", "v481", "v481",
+    "Distance to healthcare facility",  NA, NA, NA, NA, 
+    "Covered by health insurance",      NA, NA, NA, "v481",
     "Cluster altitude",                 NA, NA, NA, NA
 ) |> 
   mutate(pos = row_number(), .before = 1)
@@ -706,4 +726,3 @@ for (col in year_cols) {
 pkdhs_ft
 
 ```
-

@@ -31,10 +31,12 @@ website:
           href: dadict_npdhs.qmd
         - text: Pakistan DHS Dictionary
           href: dadict_pkdhs.qmd
-      - text: Variable checklist
+      - text: Variable Checklist
         href: davars_checklist.qmd
       - text: Data Pooling Pre-checks
         menu:
+        - text: Afghanistan DHS Pre-checks
+          href: dapool_prechk-v01_afdhs.qmd
         - text: Bangladesh DHS Pre-checks
           href: dapool_prechk-v01_bddhs.qmd
         - text: Maldives DHS Pre-checks
@@ -43,7 +45,7 @@ website:
           href: dapool_prechk-v01_npdhs.qmd
         - text: Pakistan DHS Pre-checks
           href: dapool_prechk-v01_pkdhs.qmd
-      - text: Pooled data dictionary
+      - text: Pooled Data Dictionary
         href: dadict_postchk_sasiadhs.qmd
       - text: Preliminary Data Analysis
         menu:
@@ -70,10 +72,12 @@ website:
             href: dadict_npdhs.qmd
           - text: Pakistan DHS Dictionary
             href: dadict_pkdhs.qmd
-      - text: Variable checklist
+      - text: Variable Checklist
         href: davars_checklist.qmd
       - section: "Data Pooling Pre-checks"
         contents:
+          - text: Afghanistan DHS Pre-checks
+            href: dapool_prechk-v01_afdhs.qmd
           - text: Bangladesh DHS Pre-checks
             href: dapool_prechk-v01_bddhs.qmd
           - text: Maldives DHS Pre-checks
@@ -82,7 +86,7 @@ website:
             href: dapool_prechk-v01_npdhs.qmd
           - text: Pakistan DHS Pre-checks
             href: dapool_prechk-v01_pkdhs.qmd
-      - text: Pooled data dictionary
+      - text: Pooled Data Dictionary
         href: dadict_postchk_sasiadhs.qmd
       - section: "Preliminary Data Analysis"
         contents:
