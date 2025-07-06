@@ -1,0 +1,202 @@
+---
+title: "Pooled DHS data dictionary"
+---
+
+# Getting started
+
+First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+We document the variable labels and other contents of all variables across all the pooled Demographic and Health Survey (DHS) birth history datasets of South Asian countries here. This will be primary document for viewing what variables will be used for analysis in PhD research. This document will guide us on the variable availability in the pooled datasets of the various South Asian countries.
+
+This document contains variable details for the following Afghanistan DHS surveys:
+
+```{r}
+#| label: data-import
+#| echo: false
+#| output: false
+
+# Importing the pooled dataset of sasiadhs countries
+# Importing the Bangladesh DHS pooled dataset
+bdbr_pl <- read_rds(
+  file = here("website_data", "bdbr1_pl1.rds")
+)
+# Importing the Nepal DHS pooled dataset
+npbr_pl <- read_rds(
+  file = here("website_data", "npbr1_pl1.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "South Asian DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of pooled surveys to be used for analysis
+sasiadhs_tbl <- tibble(
+  ccode = c(1:2),
+  country = c("Bangladesh", "Nepal"),
+  n_sample = c(nrow(bdbr_pl), nrow(npbr_pl)),
+  n_variables = c(ncol(bdbr_pl), ncol(npbr_pl))
+)
+
+# Convert and view as flextable
+sasiadhs_tbl |> 
+  mutate(n_sample = prettyNum(n_sample, big.mark = ",")) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+
+```{r}
+#| label: fn-gen-dadict
+#| echo: false
+#| output: false
+
+# We create a function for generating basic data dictionary
+dadict_basic <- function(df) {
+  df |> 
+  # create data dictionary
+  labelled::lookfor(details = "basic") |> 
+  # keep only the required columns
+  select(-c(pos, levels, value_labels)) |> 
+  # for correctly viewing the range column in data dictionary
+  labelled::convert_list_columns_to_character()
+}
+
+```
+
+# Bangladesh DHS pooled data dictionary
+
+Here we check the variable details of the Bangladesh birth history recode (BR) pooled dataset.
+
+```{r}
+#| label: dict-bdbr-pl
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the bdbr pooled dataset.
+bdbr_pl |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "bdbr",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+# Nepal DHS pooled data dictionary
+
+Here we check the variable details of the Nepal birth history recode (BR) pooled dataset.
+
+```{r}
+#| label: dict-npbr-pl
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the npbr pooled dataset.
+npbr_pl |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    svy_name = "npbr",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all")
+
+```
+
+
