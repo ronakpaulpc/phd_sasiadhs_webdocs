@@ -183,30 +183,30 @@ gc()
 We use the following variables for the pooled data analysis:
 
 -   **Dependent variable**
--   infantd = Index child died during infancy period (0-11 months)
+    -   infantd = Index child died during infancy period (0-11 months)
 -   **Main Independent variable**
--   sibsurv_nmv = Survival status of preceding child (Death scarring)
--   binterval_3c_nmv_opp = Birth interval preceding to index child
+    -   sibsurv_nmv = Survival status of preceding child (Death scarring)
+    -   binterval_3c_nmv_opp = Birth interval preceding to index child
 -   **Independent variables \[CHILD LEVEL\]**
--   cyob10y_opp = Birth cohort of index child
--   bord_c = Birth order of index child
--   sex_fm = Gender of index child
--   season = Season during birth
+    -   cyob10y_opp = Birth cohort of index child
+    -   bord_c = Birth order of index child
+    -   sex_fm = Gender of index child
+    -   season = Season during birth
 -   **Independent variables \[MOTHER/PARENT LEVEL\]**
--   ~~myob_opp = Birth cohort of mother~~
--   macb_c_opp = Mother's age during birth of index child
--   medu_opp = Mother's Level of education
--   fedu_opp = Father's level of education
+    -   ~~myob_opp = Birth cohort of mother~~
+    -   macb_c_opp = Mother's age during birth of index child
+    -   medu_opp = Mother's Level of education
+    -   fedu_opp = Father's level of education
 -   **Independent variables \[HOUSEHOLD LEVEL\]**
--   religion = Religion
--   nat_lang = Native language of respondent
--   wi_qt_opp = Household wealth quintile
--   ~~hhgen_2c_opp = Generations in household~~
--   hhstruc_opp = Household structure
--   head_sex_fm = Sex of HH head
+    -   religion = Religion
+    -   nat_lang = Native language of respondent
+    -   wi_qt_opp = Household wealth quintile
+    -   ~~hhgen_2c_opp = Generations in household~~
+    -   hhstruc_opp = Household structure
+    -   head_sex_fm = Sex of HH head
 -   **Independent variables \[COMMUNITY LEVEL\]**
--   por = Place of residence of the household
--   ecoreg = Ecological region
+    -   por = Place of residence of the household
+    -   ecoreg = Ecological region
 
 *Note: (a) Crossed names indicates variable not included.*
 
@@ -242,17 +242,14 @@ We will check the formatting of the v005 women's weight variable before creating
 
 # First we create the data dictionary of v005 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v005 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v005) |> 
-        look_for(details = "full") |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character() |> 
-        select(-c(levels:n_na))
-    }
-  ))
+  mutate(lookfor_v005 = map(pkbr_data, \(df) {
+    df |> 
+      select(v005) |> 
+      look_for(details = "full") |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character() |> 
+      select(-c(levels:n_na))
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -276,9 +273,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-The women's weight variables are in numeric class and have no missing values. However, in Pakistan DHS 2017 some observations have weight 0. Find out why?? Therefore, we need to reformat them. Before we directly use it for preparing the pooled survey weight.
-
-#### TBD ####
+The women's weight variables are in numeric class and have no missing values. However, in Pakistan DHS 2017 some observations have weight 0. These observations are from Pakistan Occupied Kashmir (POK) and Gilgit-Baltistan province. Therefore, while preparing the data we will remove POK and Gilgit-Baltistan region from all rounds of PKDHS. Find out why?? Thus, we need not reformat them while preparing the pooled survey weight. They will automatically get adjusted with the removal of the two regions.
 
 ## Checking the ID variables before harmonization
 
@@ -292,17 +287,14 @@ Here we check the formatting of the variables using which we will prepare the ID
 # We check the var type of ID vars in all pkbr datasets.
 # First we create a data dictionary of the pkbr datasets in nested tibble.
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |>
-  mutate(lookfor_idvars = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v001, v002, v003, bord, v021, v022, v023, v024) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_idvars = map(pkbr_data, \(df) {
+    df |> 
+      select(v001, v002, v003, bord, v021, v022, v023, v024) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -342,28 +334,23 @@ First, let's find out the required length of the numeric ID variables by checkin
 # Check the summary stats for ID vars using skimr in each pkbr dataset.
 # First we estimate the summary stats using skim_without_charts().
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(
-    skim_id_num = map(
-      pkbr_data,
-      function(df) {
-        df |> 
-          select(v001, v002, v003, bord, v021, v022) |> 
-          skim_without_charts() |> 
-          as_tibble() |> 
-          select(-c(skim_type, n_missing, complete_rate)) |> 
-          rename(
-            variable = 1,
-            mean = 2,
-            sd = 3,
-            min = 4,
-            p25 = 5,
-            p50 = 6,
-            p75 = 7,
-            max = 8
-          )
-      }
-    )
-  )
+  mutate(skim_id_num = map(pkbr_data, function(df) {
+    df |> 
+      select(v001, v002, v003, bord, v021, v022) |> 
+      skim_without_charts() |> 
+      as_tibble() |> 
+      select(-c(skim_type, n_missing, complete_rate)) |> 
+      rename(
+        variable = 1,
+        mean = 2,
+        sd = 3,
+        min = 4,
+        p25 = 5,
+        p50 = 6,
+        p75 = 7,
+        max = 8
+      )
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -448,16 +435,13 @@ First we check the labels in sub-national region variable coded as v024 across t
 
 # Create the data dictionary for v024 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v024 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v024) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v024 = map(pkbr_data, \(df) {
+    df |> 
+      select(v024) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -495,8 +479,8 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-**NOTE:** The sub-national region var, v024 has different label values in each survey year. It was same for pkbr 1996, 2001 and 2006. After that the label values are different for each survey round.\
-**VERD:** In this analysis, we do not use the region var in the ID var.
+**NOTE:** The sub-national region var, v024 has different value labels in each survey year. It is similar for pkbr 1990 and 2006. After that the label values are different for each survey round.\
+**VERD:** In this analysis, we do not use the region var in the ID var. Also we will remove the Gilgit Baltistan region in pkbr 2012 and the Gilgit Baltistan and Pakistan Occupied Kashmir region in pkbr 2017 while preparing the pooled dataset.
 
 ------------------------------------------------------------------------
 
@@ -509,16 +493,13 @@ Secondly, we check the labels in v023 variable that denotes the stratifications 
 
 # Create the data dictionary for v023 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v023 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v023) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v023 = map(pkbr_data, \(df) {
+    df |> 
+      select(v023) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -559,8 +540,6 @@ pkbr1_pre_tmp2 |>
 **NOTE:** The labels of v023 are different across the survey rounds.\
 **VERD:** Therefore we cannot use v023 in the ID variable preparation.
 
-Altly, we can use the ecological region variable (secoreg) in the ID var. We will check for this in future.
-
 ## Checking the Birth History variables before harmonization
 
 Undoubtedly the birth history variables are important for this study objective. Therefore, we need to scrutinize all the birth history variables before using them to prepare harmonized variables for the pooled dataset.
@@ -573,17 +552,14 @@ Undoubtedly the birth history variables are important for this study objective. 
 # We check the birth history vars in all pkbr datasets.
 # First we create a data dictionary in nested tibble.
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |>
-  mutate(lookfor_bhvars = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(bidx, matches("^b[0-9]+")) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_bhvars = map(pkbr_data, \(df) {
+    df |> 
+      select(bidx, matches("^b[0-9]+")) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -609,7 +585,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-From the above table we get an overall snapshot of the birth history variables. We see that the variables b1-b13 are common in all the six pkbr datasets. Notably pkbr 2001 and 2006 have some extra variables that are not available in other rounds. Next, we look at the other labelled variables which are common across pkbr in more details. We would like to see if the value labels of the common birth history variables are similar across the pkbr datasets.
+From the above table we get an overall snapshot of the birth history variables. We see that the variables b1-b13 are common in all the 4 pkbr datasets. Next, we look at the labelled variables which are common across pkbr in more details. We would like to see if the value labels of the common birth history variables are similar across the pkbr datasets.
 
 ### b0 - child is twin
 
@@ -622,16 +598,13 @@ We check the value labels of b0 variable that denotes whether the child is twin.
 
 # Create the data dictionary for b0 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_b0 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(b0) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b0 = map(pkbr_data, \(df) {
+    df |> 
+      select(b0) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -667,7 +640,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-We can see the value labels of b0 in the above table. We see that the value labels are same across all the pkbr datasets.
+We can see the value labels of b0 in the above table. We see that the value labels and codes are same across the pkbr datasets.
 
 ### b4 - sex of child
 
@@ -680,16 +653,13 @@ We check the value labels of b4 variable which gives the sex of the child. First
 
 # Create the data dictionary for b4 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_b4 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(b4) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b4 = map(pkbr_data, \(df) {
+    df |> 
+      select(b4) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -725,7 +695,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-We can see the value labels of b4 in the above table. The value labels are same across all the pkbr datasets.
+We can see the value labels of b4 in the above table. The value labels and codes are similar across the pkbr datasets with minor differences in capitalization in pkbr 2012.
 
 ### b5 - child is alive
 
@@ -738,16 +708,13 @@ We check the value labels of b5 variable which gives the survival status of the 
 
 # Create the data dictionary for b5 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_b5 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(b5) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b5 = map(pkbr_data, \(df) {
+    df |> 
+      select(b5) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -783,7 +750,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-The above table shows that the value labels of survival status of child are same across all the pkbr datasets.
+The above table shows that the value labels and codes of survival status of child are similar across the pkbr datasets.
 
 ### b6 - age at death
 
@@ -796,16 +763,13 @@ We check the value labels of b6 variable which shows the age at death of childre
 
 # Create the data dictionary for b5 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_b6 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(b6) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b6 = map(pkbr_data, \(df) {
+    df |> 
+      select(b6) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -841,7 +805,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-The above table shows that the value labels of age at death of child are in two groups. First, they are same for pkbr 1996, 2001 and 2006 and and then for pkbr 2011, 2016 and 2022.
+The above table shows that the value labels and codes of age at death of child differ among the pkbr rounds.
 
 ### b9 - child lives with whom
 
@@ -854,16 +818,13 @@ We check the value labels of b9 variable which gives info on who the child lives
 
 # Create the data dictionary for b9 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_b9 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(b9) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b9 = map(pkbr_data, \(df) {
+    df |> 
+      select(b9) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -899,7 +860,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-We can see in the above table that the value labels of b9 are same across all the pkbr datasets.
+The above table shows that the value labels and codes of child lives with whom variable are similar across the pkbr datasets. Only pkbr 1990 has a different category of "\[4\] 15+ & live elsewhere".
 
 ### b10 - completeness of information
 
@@ -912,16 +873,13 @@ We check the value labels of b10 variable which gives the completeness of birth 
 
 # Create the data dictionary for b10 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_b10 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(b10) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b10 = map(pkbr_data, \(df) {
+    df |> 
+      select(b10) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -957,7 +915,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-We can see in the above table that the value labels of b10 are same across pkbr 1996, 2001, 2006 and 2011 datasets. Then they are same for pkbr 2016 and 2022.
+We can see in the above table that the value labels of b10 are similar across the pkbr datasets. Only pkbr 2017 has an extra category of "\[0\] month, year and day".
 
 ## Checking the Common independent variables before harmonization
 
@@ -971,18 +929,15 @@ Next we start documenting the common independent variables. First we will check 
 # We check the common independent vars in all pkbr datasets.
 # First we create the data dictionary in nested tibble.
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |>
-  mutate(lookfor_comindvars = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        # select the common independent variables
-        select(v106, v011, v501, v701, v025, v151, v152) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_comindvars = map(pkbr_data, \(df) {
+    df |> 
+      # select the common independent variables
+      select(v106, v011, v501, v701, v025, v151, v152) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1008,7 +963,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-From the above table we get an overall snapshot of the common independent variables. We see that majority of the have different number of value labels across the six pkbr datasets. Only v025 and v151 have the same number of value labels across pkbr rounds. Next, we look at the labelled variables among these common variables in more details. We would like to see if the value labels and codes of the common independent variables are similar across the pkbr datasets.
+From the above table we get an overall snapshot of the common independent variables. We see that all the categorical variables have the same number of value labels across the 4 pkbr datasets. **Note that** the v701 variable has few missing values in 1990 and 2017 rounds and the v152 variable has some in the the pkbr 1990 round. Interestingly, the age of household head variable (v152) is a continuous variable and has some value labels. Next, we look at the labelled variables among these common variables in more details. We would like to see if the value labels and codes of the common independent variables are similar across the pkbr datasets.
 
 ### v106 - Mother's education level
 
@@ -1021,16 +976,13 @@ We check the value labels of v106 variable that denotes the highest education le
 
 # Create the data dictionary for v106 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v106 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v106) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v106 = map(pkbr_data, \(df) {
+    df |> 
+      select(v106) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1066,11 +1018,11 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-We can see the value labels of v106 are mostly similar except for pkbr 1996 and 2011 datasets.
+We can see the value labels of v106 are mostly similar across the pkbr datasets.
 
 ### v011 - Date of birth (in CMC)
 
-The v011 variable, which has the dob of mothers in cmc, is a numeric variable. Let's check the range of these values in further details such as checking for outliers. First let's create a nested tibble of the summary statistics of v011 variable.
+The v011 variable, which has the dob of mothers in cmc, is a continuous variable. Let's check the range of these values in further details such as checking for outliers. First let's create a nested tibble of the summary statistics of v011 variable.
 
 ```{r}
 #| label: create-dict-v011
@@ -1079,27 +1031,24 @@ The v011 variable, which has the dob of mothers in cmc, is a numeric variable. L
 
 # Create the summary statistics for v011 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(skim_v011 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v011) |> 
-        skim_without_charts() |> 
-        as_tibble() |> 
-        select(-c(skim_type, complete_rate)) |> 
-        rename(
-          variable = 1,
-          n_miss = 2,
-          mean = 3,
-          sd = 4,
-          min = 5,
-          p25 = 6,
-          p50 = 7,
-          p75 = 8,
-          max = 9
-        )
-    }
-  ))
+  mutate(skim_v011 = map(pkbr_data, \(df) {
+    df |> 
+      select(v011) |> 
+      skim_without_charts() |> 
+      as_tibble() |> 
+      select(-c(skim_type, complete_rate)) |> 
+      rename(
+        variable = 1,
+        n_miss = 2,
+        mean = 3,
+        sd = 4,
+        min = 5,
+        p25 = 6,
+        p50 = 7,
+        p75 = 8,
+        max = 9
+      )
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1140,16 +1089,13 @@ We check the value labels of v501 variable which gives the current marital statu
 
 # Create the data dictionary for v501 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v501 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v501) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v501 = map(pkbr_data, \(df) {
+    df |> 
+      select(v501) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1185,7 +1131,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-All the pkbr rounds have 5 value labels. The pkbr 1996, 2001 and 2006 rounds have a set of similar value label texts. Then pkbr 2011, 2016 and 2022 have another set of similar value labels.
+All the pkbr rounds have 6 value labels and are similar. The pkbr 1990 and 2006 rounds have a set of similar value label texts. Then pkbr 2012 and 2017 have another set of similar value labels.
 
 ### v701 - Husband/Partner's education level
 
@@ -1198,16 +1144,13 @@ We check the value labels of v701 variable which gives the current marital statu
 
 # Create the data dictionary for v701 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v701 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v701) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v701 = map(pkbr_data, \(df) {
+    df |> 
+      select(v701) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1243,7 +1186,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-All the pkbr rounds have 5 value labels. The pkbr 1996, 2001 and 2006 rounds and pkbr 2011, 2016 and 2022 have a similar set of value labels with a difference in wording among them.
+All the pkbr rounds have 5 value labels. The value labels and codes are similar across the pkbr rounds.
 
 ### v025 - Type of place of residence
 
@@ -1256,16 +1199,13 @@ We check the value labels of v025 variable which shows if a household belongs to
 
 # Create the data dictionary for v025 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v025 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v025) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v025 = map(pkbr_data, \(df) {
+    df |> 
+      select(v025) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1301,11 +1241,11 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-The values labels and codes for v025 are same across all the pkbr rounds.
+The values labels and codes for v025 are same across the pkbr rounds.
 
 ### v151 - Sex of household head
 
-We check the value labels of v151 variable which gives the gender of the household head. First we create a nested tibble of v151's value labels.
+We check the value labels of v151 variable which gives the sex of the household head. First we create a nested tibble of v151's value labels.
 
 ```{r}
 #| label: create-dict-v151
@@ -1314,16 +1254,13 @@ We check the value labels of v151 variable which gives the gender of the househo
 
 # Create the data dictionary for v151 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v151 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v151) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v151 = map(pkbr_data, \(df) {
+    df |> 
+      select(v151) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1363,7 +1300,7 @@ The values labels and codes for v151 are same across all the pkbr rounds.
 
 ### v152 - Age of household head
 
-Interestingly, we see v152 (a continuous variable) has value labels for all rounds except pkbr 1996. Therefore, we check the value labels of v152 for those rounds. First we create a nested tibble of v152's value labels.
+Interestingly, we see v152 (a continuous variable) has value labels for all rounds. Therefore, we check the value labels of v152. First we create a nested tibble of v152's value labels.
 
 ```{r}
 #| label: create-dict-v152
@@ -1372,16 +1309,14 @@ Interestingly, we see v152 (a continuous variable) has value labels for all roun
 
 # Create the data dictionary for v152 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_v152 = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(v152) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  filter(svy_year != 1996) |> 
+  mutate(lookfor_v152 = map(pkbr_data, \(df) {
+    df |> 
+      select(v152) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1413,15 +1348,227 @@ pkbr1_pre_tmp2 <- pkbr1_pre_tmp1 |>
 pkbr1_pre_tmp2 |> 
   qflextable() |> 
   align(align = "left", part = "all") |> 
+  autofit() 
+
+```
+
+We can see that the value labels of v152 are mostly for missing values. However, since v152 has no missing values across the pkbr rounds except a few for the pkbr 1990 round, we need not be concerned about them.
+
+## Checking the Social group variables before harmonization
+
+Now we document the social group variables and then harmonize them. Upon manually checking the full data dictionaries of each pkbr dataset we find the following variables - language of questionnaire, language of interview and native language of respondent. First we will check the overall data dictionary of these social group variables. Then we will check them variable wise.
+
+```{r}
+#| label: create-dict-socgrp
+#| echo: true
+#| output: false
+
+# We check the social group vars in all pkbr datasets.
+# First we create the data dictionary in nested tibble.
+pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |>
+  mutate(lookfor_socgrp = map(pkbr_data, \(df) {
+    df |> 
+      # select the social group variables
+      select(any_of(c(
+        "slang1", "slang2", "slang3", "slangq", "slangi", "slangw", "slangr", 
+        "v045a", "v045b", "v045c"
+      ))) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
+pkbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-socgrp
+#| echo: true
+#| output: true
+#| fenced: true
+#| tbl-cap: "Data dictionary of social group variables across the pkbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary 
+pkbr1_pre_tmp2 <- pkbr1_pre_tmp1 |> 
+  select(-c(unf, pkbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_socgrp)) |> 
+  arrange(pos)
+
+# Convert the tibble to flextable for easy viewing
+pkbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
   autofit()
 
 ```
 
-We can see that the value labels of v152 are mostly for missing values. However, since v152 has no missing values across the pkbr rounds, we need not be concerned about them.
+The above table gives an overall snapshot of the social group variables. All the variables are of labelled class. **Note that**, the social group variables for pkbr 1990 has few missing values. Next, we look at the variables individually for matching the value labels across the pkbr datasets.
 
-## Checking the Social group variables before harmonization
+### Language of questionnaire
 
-Now we document the social group variables and then harmonize them. Upon manually checking the full data dictionaries of each pkbr dataset we find that there are no common social group variables across the pkbr datasets. **Therefore, we cannot include any social group variables for analyzing Pakistan DHS datasets.**
+Let's check the value labels of the language of questionnaire variable. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-v045a
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
+  mutate(lookfor_lang = map(pkbr_data, \(df) {
+    df |> 
+      select(any_of(c("slang1", "slangq", "v045a"))) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
+pkbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v045a
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of language of interview variable across the pkbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+pkbr1_pre_tmp2 <- pkbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, pkbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_lang)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "pkbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v045a", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+pkbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The language of questionnaire variable has multiple value labels. However the value labels and codes differ across the pkbr rounds.
+
+### Language of interview
+
+Next, we check the value labels of the language of interview variable. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-v045b
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
+  mutate(lookfor_lang = map(pkbr_data, \(df) {
+    df |> 
+      select(any_of(c("slang2", "slangi", "v045b"))) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
+pkbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v045b
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of language of interview variable across the pkbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+pkbr1_pre_tmp2 <- pkbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, pkbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_lang)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "pkbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v045b", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+pkbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The language of interview variable has multiple value labels. However the value labels and codes differ across the pkbr rounds.
+
+### Native language of hh respondent
+
+Next, we check the value labels of the native language of hh respondent variable. The variable names of this variable differs across the pkbr datasets. First we create a nested tibble of the value labels.
+
+```{r}
+#| label: create-dict-v045c
+#| echo: true
+#| output: false
+
+# Create the data dictionary in nested tibble
+pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
+  mutate(lookfor_lang = map(pkbr_data, \(df) {
+    df |> 
+      select(any_of(c("slang3", "slangw", "slangr", "v045c"))) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
+pkbr1_pre_tmp1
+
+```
+
+```{r}
+#| label: tbl-dict-v045c
+#| echo: true
+#| output: true
+#| tbl-cap: "Data dictionary of native language of respondent variable across the pkbr rounds"
+
+# Now we unnest the tibble and refine the pooled data dictionary
+pkbr1_pre_tmp2 <- pkbr1_pre_tmp1 |> 
+  # First we select the required cols and unnest()
+  select(-c(unf, pkbr_data, n_births)) |> 
+  unnest(cols = c(lookfor_lang)) |> 
+  # Next we make the num of value labels same across each round
+  mutate(label_num = parse_number(value_labels)) |> 
+  complete(ctr_name, svy_year, label_num) |>
+  # Next we create col of value labels for each survey round
+  pivot_wider(
+    names_from = svy_year, 
+    values_from = value_labels,
+    names_prefix = "pkbr_"
+  ) |>
+  # Show the variable name in a col
+  mutate(var_name = "v045c", .before = 2)
+
+# Convert the tibble to flextable for easy viewing
+pkbr1_pre_tmp2 |> 
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+The native language of respondent variable has multiple value labels. However the value labels and codes differ across the pkbr rounds.
 
 ## Correcting year-related variables
 
@@ -1434,17 +1581,14 @@ The year-related variables might have different formatting in each survey. There
 
 # First we create the data dictionary of year-related vars in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  mutate(lookfor_year = map(
-    pkbr_data,
-    \(df) {
-      df |> 
-        select(c(b2, v007, v010)) |> 
-        look_for(details = "full") |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character() |> 
-        select(-c(levels:n_na))
-    }
-  ))
+  mutate(lookfor_year = map(pkbr_data, \(df) {
+    df |> 
+      select(c(b2, v007, v010)) |> 
+      look_for(details = "full") |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character() |> 
+      select(-c(levels:n_na))
+  }))
 pkbr1_pre_tmp1
 
 ```
@@ -1468,7 +1612,7 @@ pkbr1_pre_tmp2 |>
 
 ```
 
-We find that none of the year variables have the correct values. Just look at the year of interview variable. We see that the year of interview values are higher than the corresponding survey years. Therefore, we need to reformat them before appending the datasets.
+We can say that the year variables have correct values, especially by looking at the year of interview variable. Only in the pkbr 1990 dataset the year values are of two-digits and we need to correct them by adding 1900. After that we use the year variables for the other rounds directly for analysis.
 
 # Pakistan HH dataset use for variable creation
 
@@ -1484,17 +1628,14 @@ Here we check the formatting of the constituent variables with which we will pre
 # We check the var type of ID vars in all pkhr datasets.
 # First we create a data dictionary of the pkhr datasets in nested tibble.
 pkhr1_pre_tmp1 <- pkhr1_pre_tmp0 |>
-  mutate(lookfor_idvars = map(
-    pkhr_data,
-    \(df) {
-      df |> 
-        select(hv001, hv002) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_idvars = map(pkhr_data, \(df) {
+    df |> 
+      select(hv001, hv002) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 pkhr1_pre_tmp1
 
 ```
@@ -1568,9 +1709,9 @@ The above table gives the required length of the constituent ID variables to be 
 
 ## Checking HH-level variables before harmonization
 
-Here we check the wealth quintile variables before harmonizing them. Note in Pakistan 1990 the wealth quintile variables are provided in separate datasets. Therefore we join those variables to the hh file before proceeding with the checking.
+Here we check the wealth quintile variables before harmonizing them. Note in Pakistan 1990 the wealth quintile variables are provided in a separate dataset. Therefore we join those variables to the hh file before proceeding with the checking.
 
-Upon manually checking the full data dictionaries we find the variable names. Now we will check the data dictionary of these hh-level variables. Then we will check their value labels variable wise.
+Upon manually checking the full data dictionaries we find the variable names. Now we will check the overall data dictionary of these hh-level variables. Then we will check their value labels variable wise.
 
 ```{r}
 #| label: create-dict-hhvars
@@ -1580,18 +1721,15 @@ Upon manually checking the full data dictionaries we find the variable names. No
 # We check the hh-level vars in all pkhr datasets.
 # First we create the data dictionary in nested tibble.
 pkhr1_pre_tmp1 <- pkhr1_pre_tmp0 |>
-  mutate(lookfor_hhvars = map(
-    pkhr_data,
-    \(df) {
-      df |> 
-        # select the common independent variables
-        select(matches("^wlthind5$|^hv270$")) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_hhvars = map(pkhr_data, \(df) {
+    df |> 
+      # select the common independent variables
+      select(matches("^wlthind5$|^hv270$")) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 pkhr1_pre_tmp1
 
 ```
@@ -1617,7 +1755,13 @@ pkhr1_pre_tmp2 |>
 
 ```
 
-The above table gives an overall snapshot of the hh-level variables. All the variables are of labelled class and have the same number of value labels across all the pkhr datasets. **Note that**, the ecological region variable has a different value label code in the pkbr 1996 dataset. Next, we compare the value labels of the variables across the pkhr datasets.
+The above table gives an overall snapshot of the hh-level variables. All the variables are of labelled class and have the same number of value labels across all the pkhr datasets.
+
+**NOTE:** The wealth quintile variable in pkbr 2006 dataset has many missing values. Upon further checking we find that the wealth quintile variable v190 in the pkbr 2006 BR and IR dataset have no missing values. 
+
+**SOLU:** Therefore, we will use the wealth quintile variables from the BR dataset directly for the pkbr 2006. Also, in 1990 round we will merge the wealth quintile variable from pkhr to the pkbr dataset directly. 
+
+Next, we compare the value labels of the wealth quintile variables across the pkhr datasets.
 
 ### Wealth index quintile variable
 
@@ -1630,16 +1774,13 @@ Next, we check the value labels of the household wealth quintile variable. The v
 
 # Create the data dictionary in nested tibble
 pkhr1_pre_tmp1 <- pkhr1_pre_tmp0 |> 
-  mutate(lookfor_wiqt = map(
-    pkhr_data,
-    \(df) {
-      df |> 
-        select(matches("^wlthind5$|^hv270$")) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_wiqt = map(pkhr_data, \(df) {
+    df |> 
+      select(matches("^wlthind5$|^hv270$")) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 pkhr1_pre_tmp1
 
 ```
@@ -1675,7 +1816,7 @@ pkhr1_pre_tmp2 |>
 
 ```
 
-Clearly, the value label codes are same in all pkhr rounds. However, the value label texts are different in pkhr 1996 and 2001, compared to the pkhr 2006, 2011, 2016 and 2022 rounds. Therefore, we need to be mindful of this during harmonization.
+The value labels and codes are similar in the pkhr 2006, 2012 and 2017 rounds. However, the value label texts from the pkhr 1990 round is different. Therefore, we need to be mindful of this during harmonization.
 
 # Pakistan PR dataset use for family structure variables creation
 
@@ -1816,7 +1957,7 @@ pkpr1_pre_tmp2 |>
 
 ```
 
-The above table gives an overall snapshot of the family structure related variables. Interestingly, all the variables including age of hh members (a continuous var) are of labelled class. The relation to head and de facto resident variables have few missing values in pkpr 1996. **Note that**, the three variables of interest hv101-hv102, two variables hv101 and hv103 have different number of value labels across the pkpr rounds. Next, we compare the value labels of the individual variables across the pkpr datasets.
+The above table gives an overall snapshot of the family structure related variables. Interestingly, all the variables including age of hh members (a continuous variable) are of labelled class. All the family structure variables have few missing values in pkpr 1990 and 2017. **Note that**, the hv101 variable of interest have different number of value labels across the pkpr rounds. Next, we compare the value labels of the individual variables across the pkpr datasets.
 
 ### hv101 - Relationship to head
 
@@ -2003,7 +2144,4 @@ TASK:
 -   Preceding birth interval construction has changed with DHS-7. We could re-construct it.
 
 TO BE CONTINUED ...
-
-
-
 
