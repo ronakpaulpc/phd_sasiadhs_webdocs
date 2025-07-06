@@ -80,9 +80,11 @@ Now we set the flextable output defaults.
 #| output: false 
 
 set_flextable_defaults(
-  font.size = 10, 
+  font.size = 11,
+  text.align = "left",
   big.mark = "",
-  font.family = "Helvetica",
+  background.color = "white",
+  table.layout = "autofit",
   theme_fun = theme_vanilla
 )
 
@@ -127,7 +129,9 @@ afpr1_tmp_intro <- read_rds(
 #| tbl-cap: "Afghanistan DHS datasets and their sample size to be used for pooling"
 
 # Creating the table of surveys to be used for pooling
-afbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |> 
+afbr1_tmp_intro |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
   # Join vars from afir_tmp_intro
   left_join(
     afir1_tmp_intro |> 
@@ -137,12 +141,16 @@ afbr1_tmp_intro |> select(c(ctr_name, svy_year, n_births)) |>
   ) |> 
   # Join vars from afhr_tmp_intro
   left_join(
-    afhr1_tmp_intro |> select(svy_year, n_households),
+    afhr1_tmp_intro |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
     by = join_by(svy_year)
   ) |> 
   # Join vars from afpr_tmp_intro
   left_join(
-    afpr1_tmp_intro |> select(svy_year, n_persons),
+    afpr1_tmp_intro |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
     by = join_by(svy_year)
   ) |> 
   # convert nested tibble to simple tibble
@@ -175,30 +183,30 @@ rm(list = c("afbr1_tmp_intro",
 We use the following variables for the pooled data analysis:
 
 -   **Dependent variable**
-    -   infantd = Index child died during infancy period (0-11 months)
+-   infantd = Index child died during infancy period (0-11 months)
 -   **Main Independent variable**
-    -   sibsurv_nmv = Survival status of preceding child (Death scarring)
-    -   binterval_3c_nmv_opp = Birth interval preceding to index child
--   **Independent variables** \[CHILD LEVEL\]
-    -   cyob10y_opp = Birth cohort of index child
-    -   bord_c = Birth order of index child
-    -   sex_fm = Gender of index child
-    -   season = Season during birth
--   **Independent variables** \[MOTHER/PARENT LEVEL\]
-    -   ~~myob_opp = Birth cohort of mother~~
-    -   macb_c_opp = Mother's age during birth of index child
-    -   medu_opp = Mother's Level of education
-    -   fedu_opp = Father's level of education
--   **Independent variables** \[HOUSEHOLD LEVEL\]
-    -   ~~religion = Religion~~
-    -   ~~nat_lang = Native language of respondent~~
-    -   wi_qt_opp = Household wealth quintile
-    -   ~~hhgen_2c_opp = Generations in household~~
-    -   hhstruc_opp = Household structure
-    -   head_sex_fm = Sex of HH head
--   **Independent variables** \[COMMUNITY LEVEL\]
-    -   por = Place of residence of the household
-    -   ecoreg = Ecological region
+-   sibsurv_nmv = Survival status of preceding child (Death scarring)
+-   binterval_3c_nmv_opp = Birth interval preceding to index child
+-   **Independent variables \[CHILD LEVEL\]**
+-   cyob10y_opp = Birth cohort of index child
+-   bord_c = Birth order of index child
+-   sex_fm = Gender of index child
+-   season = Season during birth
+-   **Independent variables \[MOTHER/PARENT LEVEL\]**
+-   ~~myob_opp = Birth cohort of mother~~
+-   macb_c_opp = Mother's age during birth of index child
+-   medu_opp = Mother's Level of education
+-   fedu_opp = Father's level of education
+-   **Independent variables \[HOUSEHOLD LEVEL\]**
+-   ~~religion = Religion~~
+-   ~~nat_lang = Native language of respondent~~
+-   wi_qt_opp = Household wealth quintile
+-   ~~hhgen_2c_opp = Generations in household~~
+-   hhstruc_opp = Household structure
+-   head_sex_fm = Sex of HH head
+-   **Independent variables \[COMMUNITY LEVEL\]**
+-   por = Place of residence of the household
+-   ecoreg = Ecological region
 
 *Note: (a) Crossed names indicates variable not included.*
 
@@ -235,17 +243,14 @@ We will check the formatting of the v005 women's weight variable before creating
 
 # First we create the data dictionary of v005 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v005 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v005) |> 
-        look_for(details = "full") |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character() |> 
-        select(-c(levels:n_na))
-    }
-  ))
+  mutate(lookfor_v005 = map(afbr_data, \(df) {
+    df |> 
+      select(v005) |> 
+      look_for(details = "full") |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character() |> 
+      select(-c(levels:n_na))
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -283,17 +288,14 @@ Here we check the formatting of the variables using which we will prepare the ID
 # We check the var type of ID vars in all afbr datasets.
 # First we create a data dictionary of the afbr datasets in nested tibble.
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |>
-  mutate(lookfor_idvars = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v001, v002, v003, bord, v021, v022, v023, v024) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_idvars = map(afbr_data, \(df) {
+    df |> 
+      select(v001, v002, v003, bord, v021, v022, v023, v024) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -333,28 +335,23 @@ First, let's find out the required length of the numeric ID variables by checkin
 # Check the summary stats for ID vars using skimr in each afbr dataset.
 # First we estimate the summary stats using skim_without_charts().
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(
-    skim_id_num = map(
-      afbr_data,
-      function(df) {
-        df |> 
-          select(v001, v002, v003, bord, v021, v022) |> 
-          skim_without_charts() |> 
-          as_tibble() |> 
-          select(-c(skim_type, n_missing, complete_rate)) |> 
-          rename(
-            variable = 1,
-            mean = 2,
-            sd = 3,
-            min = 4,
-            p25 = 5,
-            p50 = 6,
-            p75 = 7,
-            max = 8
-          )
-      }
-    )
-  )
+  mutate(skim_id_num = map(afbr_data, function(df) {
+    df |> 
+      select(v001, v002, v003, bord, v021, v022) |> 
+      skim_without_charts() |> 
+      as_tibble() |> 
+      select(-c(skim_type, n_missing, complete_rate)) |> 
+      rename(
+        variable = 1,
+        mean = 2,
+        sd = 3,
+        min = 4,
+        p25 = 5,
+        p50 = 6,
+        p75 = 7,
+        max = 8
+      )
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -439,16 +436,13 @@ First we check the labels in sub-national region variable coded as v024 across t
 
 # Create the data dictionary for v024 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v024 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v024) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v024 = map(afbr_data, \(df) {
+    df |> 
+      select(v024) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -499,16 +493,13 @@ Secondly, we check the labels in v023 variable that denotes the stratifications 
 
 # Create the data dictionary for v023 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v023 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v023) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v023 = map(afbr_data, \(df) {
+    df |> 
+      select(v023) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -560,17 +551,14 @@ Undoubtedly the birth history variables are important for this study objective. 
 # We check the birth history vars in all afbr datasets.
 # First we create a data dictionary in nested tibble.
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |>
-  mutate(lookfor_bhvars = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(bidx, matches("^b[0-9]+")) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_bhvars = map(afbr_data, \(df) {
+    df |> 
+      select(bidx, matches("^b[0-9]+")) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -609,16 +597,13 @@ We check the value labels of b0 variable that denotes whether the child is twin.
 
 # Create the data dictionary for b0 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_b0 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(b0) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b0 = map(afbr_data, \(df) {
+    df |> 
+      select(b0) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -667,16 +652,13 @@ We check the value labels of b4 variable which gives the sex of the child. First
 
 # Create the data dictionary for b4 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_b4 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(b4) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b4 = map(afbr_data, \(df) {
+    df |> 
+      select(b4) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -725,16 +707,13 @@ We check the value labels of b5 variable which gives the survival status of the 
 
 # Create the data dictionary for b5 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_b5 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(b5) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b5 = map(afbr_data, \(df) {
+    df |> 
+      select(b5) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -783,16 +762,13 @@ We check the value labels of b6 variable which shows the age at death of childre
 
 # Create the data dictionary for b5 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_b6 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(b6) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b6 = map(afbr_data, \(df) {
+    df |> 
+      select(b6) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -841,16 +817,13 @@ We check the value labels of b9 variable which gives info on who the child lives
 
 # Create the data dictionary for b9 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_b9 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(b9) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b9 = map(afbr_data, \(df) {
+    df |> 
+      select(b9) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -899,16 +872,13 @@ We check the value labels of b10 variable which gives the completeness of birth 
 
 # Create the data dictionary for b10 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_b10 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(b10) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b10 = map(afbr_data, \(df) {
+    df |> 
+      select(b10) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -958,18 +928,15 @@ Next we start documenting the common independent variables. First we will check 
 # We check the common independent vars in all afbr datasets.
 # First we create the data dictionary in nested tibble.
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |>
-  mutate(lookfor_comindvars = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        # select the common independent variables
-        select(v106, v011, v501, v701, v025, v151, v152, v190) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_comindvars = map(afbr_data, \(df) {
+    df |> 
+      # select the common independent variables
+      select(v106, v011, v501, v701, v025, v151, v152, v190) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1008,16 +975,13 @@ We check the value labels of v106 variable that denotes the highest education le
 
 # Create the data dictionary for v106 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v106 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v106) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v106 = map(afbr_data, \(df) {
+    df |> 
+      select(v106) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1066,27 +1030,24 @@ The v011 variable, which has the dob of mothers in cmc, is a numeric variable. L
 
 # Create the summary statistics for v011 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(skim_v011 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v011) |> 
-        skim_without_charts() |> 
-        as_tibble() |> 
-        select(-c(skim_type, complete_rate)) |> 
-        rename(
-          variable = 1,
-          n_miss = 2,
-          mean = 3,
-          sd = 4,
-          min = 5,
-          p25 = 6,
-          p50 = 7,
-          p75 = 8,
-          max = 9
-        )
-    }
-  ))
+  mutate(skim_v011 = map(afbr_data, \(df) {
+    df |> 
+      select(v011) |> 
+      skim_without_charts() |> 
+      as_tibble() |> 
+      select(-c(skim_type, complete_rate)) |> 
+      rename(
+        variable = 1,
+        n_miss = 2,
+        mean = 3,
+        sd = 4,
+        min = 5,
+        p25 = 6,
+        p50 = 7,
+        p75 = 8,
+        max = 9
+      )
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1127,16 +1088,13 @@ We check the value labels of v501 variable which gives the current marital statu
 
 # Create the data dictionary for v501 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v501 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v501) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v501 = map(afbr_data, \(df) {
+    df |> 
+      select(v501) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1185,16 +1143,13 @@ We check the value labels of v701 variable which gives the current marital statu
 
 # Create the data dictionary for v701 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v701 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v701) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v701 = map(afbr_data, \(df) {
+    df |> 
+      select(v701) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1243,16 +1198,13 @@ We check the value labels of v025 variable which shows if a household belongs to
 
 # Create the data dictionary for v025 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v025 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v025) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v025 = map(afbr_data, \(df) {
+    df |> 
+      select(v025) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1301,16 +1253,13 @@ We check the value labels of v151 variable which gives the gender of the househo
 
 # Create the data dictionary for v151 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_v151 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v151) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v151 = map(afbr_data, \(df) {
+    df |> 
+      select(v151) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1359,17 +1308,13 @@ Interestingly, we see v152 (a continuous variable) has value labels. Therefore, 
 
 # Create the data dictionary for v152 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  filter(svy_year != 1996) |> 
-  mutate(lookfor_v152 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v152) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v152 = map(afbr_data, \(df) {
+    df |> 
+      select(v152) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1419,16 +1364,13 @@ We check the value labels of v190 which gives the wealth index quintile of birth
 # Create the data dictionary for v190 in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
   filter(svy_year != 1996) |> 
-  mutate(lookfor_v190 = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(v190) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v190 = map(afbr_data, \(df) {
+    df |> 
+      select(v190) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1478,18 +1420,15 @@ Now we document the social group variables and then harmonize them. Upon manuall
 # We check the social group vars in all afbr datasets.
 # First we create the data dictionary in nested tibble.
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |>
-  mutate(lookfor_socgrp = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        # select the social group variables
-        select(v131, v045b, v045c) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_socgrp = map(afbr_data, \(df) {
+    df |> 
+      # select the social group variables
+      select(v131, v045b, v045c) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1693,17 +1632,14 @@ The year-related variables might have different formatting in each survey. There
 
 # First we create the data dictionary of year-related vars in nested tibble
 afbr1_pre_tmp1 <- afbr1_pre_tmp0 |> 
-  mutate(lookfor_year = map(
-    afbr_data,
-    \(df) {
-      df |> 
-        select(c(b2, v007, v010)) |> 
-        look_for(details = "full") |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character() |> 
-        select(-c(levels:n_na))
-    }
-  ))
+  mutate(lookfor_year = map(afbr_data, \(df) {
+    df |> 
+      select(c(b2, v007, v010)) |> 
+      look_for(details = "full") |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character() |> 
+      select(-c(levels:n_na))
+  }))
 afbr1_pre_tmp1
 
 ```
@@ -1732,8 +1668,6 @@ We find that none of the year variables have the correct values. Just look at th
 # Afghanistan PR dataset use for family structure variables creation
 
 ## Checking the ID variables before harmonization
-
-#### TBD ####
 
 Here we check the formatting of the constituent variables with which we will prepare the ID variables for the pooled Afghanistan person recode (PR) dataset. We will use the following constituent variables for creating the ID variables for the pooled dataset:
 

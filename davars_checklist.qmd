@@ -454,7 +454,7 @@ mvdhs <- tribble(
     "Age of household head",            "v152", "v152", 
     "Wealth index quintile",            "v190", "v190", 
     "Social group variables",           NA, NA,
-    "Religion",                         "v130", "v130",
+    "Religion",                         NA, NA,
     "Caste",                            NA, NA,
     "Ethnicity",                        NA, NA,
     "Language of questionnaire",        NA, "v045a",
@@ -509,8 +509,6 @@ mvdhs_ft
 ```
 
 # Nepal variable checklist
-
-#### START FROM HERE
 
 The variable availability for Nepal is given below.
 
@@ -726,3 +724,12 @@ for (col in year_cols) {
 pkdhs_ft
 
 ```
+
+
+#### START FROM HERE ####
+
+Majority of variables have been compared and checked. Need to check for tobacco consumption and pregnancy calendar variables.
+
+
+
+

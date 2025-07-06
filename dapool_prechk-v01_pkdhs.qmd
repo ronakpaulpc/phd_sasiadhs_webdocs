@@ -183,30 +183,30 @@ gc()
 We use the following variables for the pooled data analysis:
 
 -   **Dependent variable**
-    -   infantd = Index child died during infancy period (0-11 months)
+-   infantd = Index child died during infancy period (0-11 months)
 -   **Main Independent variable**
-    -   sibsurv_nmv = Survival status of preceding child (Death scarring)
-    -   binterval_3c_nmv_opp = Birth interval preceding to index child
--   **Independent variables** \[CHILD LEVEL\]
-    -   cyob10y_opp = Birth cohort of index child
-    -   bord_c = Birth order of index child
-    -   sex_fm = Gender of index child
-    -   season = Season during birth
--   **Independent variables** \[MOTHER/PARENT LEVEL\]
-    -   ~~myob_opp = Birth cohort of mother~~
-    -   macb_c_opp = Mother's age during birth of index child
-    -   medu_opp = Mother's Level of education
-    -   fedu_opp = Father's level of education
--   **Independent variables** \[HOUSEHOLD LEVEL\]
-    -   religion = Religion
-    -   nat_lang = Native language of respondent
-    -   wi_qt_opp = Household wealth quintile
-    -   ~~hhgen_2c_opp = Generations in household~~
-    -   hhstruc_opp = Household structure
-    -   head_sex_fm = Sex of HH head
--   **Independent variables** \[COMMUNITY LEVEL\]
-    -   por = Place of residence of the household
-    -   ecoreg = Ecological region
+-   sibsurv_nmv = Survival status of preceding child (Death scarring)
+-   binterval_3c_nmv_opp = Birth interval preceding to index child
+-   **Independent variables \[CHILD LEVEL\]**
+-   cyob10y_opp = Birth cohort of index child
+-   bord_c = Birth order of index child
+-   sex_fm = Gender of index child
+-   season = Season during birth
+-   **Independent variables \[MOTHER/PARENT LEVEL\]**
+-   ~~myob_opp = Birth cohort of mother~~
+-   macb_c_opp = Mother's age during birth of index child
+-   medu_opp = Mother's Level of education
+-   fedu_opp = Father's level of education
+-   **Independent variables \[HOUSEHOLD LEVEL\]**
+-   religion = Religion
+-   nat_lang = Native language of respondent
+-   wi_qt_opp = Household wealth quintile
+-   ~~hhgen_2c_opp = Generations in household~~
+-   hhstruc_opp = Household structure
+-   head_sex_fm = Sex of HH head
+-   **Independent variables \[COMMUNITY LEVEL\]**
+-   por = Place of residence of the household
+-   ecoreg = Ecological region
 
 *Note: (a) Crossed names indicates variable not included.*
 
@@ -278,7 +278,7 @@ pkbr1_pre_tmp2 |>
 
 The women's weight variables are in numeric class and have no missing values. However, in Pakistan DHS 2017 some observations have weight 0. Find out why?? Therefore, we need to reformat them. Before we directly use it for preparing the pooled survey weight.
 
-### TBD ###
+#### TBD ####
 
 ## Checking the ID variables before harmonization
 
@@ -1372,7 +1372,6 @@ Interestingly, we see v152 (a continuous variable) has value labels for all roun
 
 # Create the data dictionary for v152 in nested tibble
 pkbr1_pre_tmp1 <- pkbr1_pre_tmp0 |> 
-  filter(svy_year != 1996) |> 
   mutate(lookfor_v152 = map(
     pkbr_data,
     \(df) {

@@ -185,24 +185,24 @@ We use the following variables for the pooled data analysis:
 -   **Main Independent variable**
 -   sibsurv_nmv = Survival status of preceding child (Death scarring)
 -   binterval_3c_nmv_opp = Birth interval preceding to index child
--   **Independent variables** \[CHILD LEVEL\]
+-   **Independent variables \[CHILD LEVEL\]**
 -   cyob10y_opp = Birth cohort of index child
 -   bord_c = Birth order of index child
 -   sex_fm = Gender of index child
 -   season = Season during birth
--   **Independent variables** \[MOTHER/PARENT LEVEL\]
+-   **Independent variables \[MOTHER/PARENT LEVEL\]**
 -   ~~myob_opp = Birth cohort of mother~~
 -   macb_c_opp = Mother's age during birth of index child
 -   medu_opp = Mother's Level of education
 -   fedu_opp = Father's level of education
--   **Independent variables** \[HOUSEHOLD LEVEL\]
+-   **Independent variables \[HOUSEHOLD LEVEL\]**
 -   religion = Religion
 -   nat_lang = Native language of respondent
 -   wi_qt_opp = Household wealth quintile
 -   ~~hhgen_2c_opp = Generations in household~~
 -   hhstruc_opp = Household structure
 -   head_sex_fm = Sex of HH head
--   **Independent variables** \[COMMUNITY LEVEL\]
+-   **Independent variables \[COMMUNITY LEVEL\]**
 -   por = Place of residence of the household
 -   ecoreg = Ecological region
 
@@ -333,28 +333,23 @@ First, let's find out the required length of the numeric ID variables by checkin
 # Check the summary stats for ID vars using skimr in each mvbr dataset.
 # First we estimate the summary stats using skim_without_charts().
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(
-    skim_id_num = map(
-      mvbr_data,
-      function(df) {
-        df |> 
-          select(v001, v002, v003, bord, v021, v022) |> 
-          skim_without_charts() |> 
-          as_tibble() |> 
-          select(-c(skim_type, n_missing, complete_rate)) |> 
-          rename(
-            variable = 1,
-            mean = 2,
-            sd = 3,
-            min = 4,
-            p25 = 5,
-            p50 = 6,
-            p75 = 7,
-            max = 8
-          )
-      }
-    )
-  )
+  mutate(skim_id_num = map(mvbr_data, function(df) {
+    df |> 
+      select(v001, v002, v003, bord, v021, v022) |> 
+      skim_without_charts() |> 
+      as_tibble() |> 
+      select(-c(skim_type, n_missing, complete_rate)) |> 
+      rename(
+        variable = 1,
+        mean = 2,
+        sd = 3,
+        min = 4,
+        p25 = 5,
+        p50 = 6,
+        p75 = 7,
+        max = 8
+      )
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -439,16 +434,13 @@ First we check the labels in sub-national region variable coded as v024 across t
 
 # Create the data dictionary for v024 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v024 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v024) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v024 = map(mvbr_data, \(df) {
+    df |> 
+      select(v024) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -486,7 +478,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-**NOTE:** The sub-national region var, v024 has different label values in each survey year. It was same for mvbr 1996, 2001 and 2006. After that the label values are different for each survey round.\
+**NOTE:** The sub-national region var, v024 has similar value label and codes in both survey years. Although the exact labels differ but they correspond to the same sub-national region.\
 **VERD:** In this analysis, we do not use the region var in the ID var.
 
 ------------------------------------------------------------------------
@@ -500,16 +492,13 @@ Secondly, we check the labels in v023 variable that denotes the stratifications 
 
 # Create the data dictionary for v023 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v023 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v023) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v023 = map(mvbr_data, \(df) {
+    df |> 
+      select(v023) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -562,17 +551,14 @@ Undoubtedly the birth history variables are important for this study objective. 
 # We check the birth history vars in all mvbr datasets.
 # First we create a data dictionary in nested tibble.
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |>
-  mutate(lookfor_bhvars = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(bidx, matches("^b[0-9]+")) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_bhvars = map(mvbr_data, \(df) {
+    df |> 
+      select(bidx, matches("^b[0-9]+")) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -598,7 +584,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-From the above table we get an overall snapshot of the birth history variables. We see that the variables b1-b13 are common in all the six mvbr datasets. Notably mvbr 2001 and 2006 have some extra variables that are not available in other rounds. Next, we look at the other labelled variables which are common across mvbr in more details. We would like to see if the value labels of the common birth history variables are similar across the mvbr datasets.
+From the above table we get an overall snapshot of the birth history variables. We see that the variables b1-b13 are common in the two mvbr datasets. Next, we look at the other labelled variables which are common across mvbr in more details. We would like to see if the value labels of the common birth history variables are similar across the mvbr datasets.
 
 ### b0 - child is twin
 
@@ -611,16 +597,13 @@ We check the value labels of b0 variable that denotes whether the child is twin.
 
 # Create the data dictionary for b0 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_b0 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(b0) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b0 = map(mvbr_data, \(df) {
+    df |> 
+      select(b0) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -669,16 +652,13 @@ We check the value labels of b4 variable which gives the sex of the child. First
 
 # Create the data dictionary for b4 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_b4 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(b4) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b4 = map(mvbr_data, \(df) {
+    df |> 
+      select(b4) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -727,16 +707,13 @@ We check the value labels of b5 variable which gives the survival status of the 
 
 # Create the data dictionary for b5 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_b5 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(b5) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b5 = map(mvbr_data, \(df) {
+    df |> 
+      select(b5) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -785,16 +762,13 @@ We check the value labels of b6 variable which shows the age at death of childre
 
 # Create the data dictionary for b5 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_b6 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(b6) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b6 = map(mvbr_data, \(df) {
+    df |> 
+      select(b6) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -830,7 +804,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-The above table shows that the value labels of age at death of child are in two groups. First, they are same for mvbr 1996, 2001 and 2006 and and then for mvbr 2011, 2016 and 2022.
+The above table shows that the value labels of age at death of child differ among the two rounds.
 
 ### b9 - child lives with whom
 
@@ -843,16 +817,13 @@ We check the value labels of b9 variable which gives info on who the child lives
 
 # Create the data dictionary for b9 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_b9 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(b9) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b9 = map(mvbr_data, \(df) {
+    df |> 
+      select(b9) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -888,7 +859,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-We can see in the above table that the value labels of b9 are same across all the mvbr datasets.
+We can see in the above table that the value labels of b9 are same across all the mvbr rounds.
 
 ### b10 - completeness of information
 
@@ -901,16 +872,13 @@ We check the value labels of b10 variable which gives the completeness of birth 
 
 # Create the data dictionary for b10 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_b10 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(b10) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_b10 = map(mvbr_data, \(df) {
+    df |> 
+      select(b10) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -946,7 +914,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-We can see in the above table that the value labels of b10 are same across mvbr 1996, 2001, 2006 and 2011 datasets. Then they are same for mvbr 2016 and 2022.
+We can see in the above table that the value labels of b10 differ among the mvbr rounds.
 
 ## Checking the Common independent variables before harmonization
 
@@ -960,18 +928,15 @@ Next we start documenting the common independent variables. First we will check 
 # We check the common independent vars in all mvbr datasets.
 # First we create the data dictionary in nested tibble.
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |>
-  mutate(lookfor_comindvars = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        # select the common independent variables
-        select(v106, v011, v501, v701, v025, v151, v152, v190) |> 
-        lookfor(details = "full") |> 
-        select(-c(levels:n_na)) |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character()
-    }
-  ))
+  mutate(lookfor_comindvars = map(mvbr_data, \(df) {
+    df |> 
+      # select the common independent variables
+      select(v106, v011, v501, v701, v025, v151, v152, v190) |> 
+      lookfor(details = "full") |> 
+      select(-c(levels:n_na)) |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character()
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -997,7 +962,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-From the above table we get an overall snapshot of the common independent variables. We see that majority of the have different number of value labels across the six mvbr datasets. Only v025 and v151 have the same number of value labels across mvbr rounds. Next, we look at the labelled variables among these common variables in more details. We would like to see if the value labels and codes of the common independent variables are similar across the mvbr datasets.
+From the above table we get an overall snapshot of the common independent variables. We see that majority of the have similar number of value labels across the two mvbr rounds. The variables v701, v025, v151 and v190 have the same number of value labels across mvbr rounds. Next, we look at the labelled variables among these common variables in more detail. We would like to see if the value labels and codes of the common independent variables are similar across the mvbr datasets.
 
 ### v106 - Mother's education level
 
@@ -1010,16 +975,13 @@ We check the value labels of v106 variable that denotes the highest education le
 
 # Create the data dictionary for v106 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v106 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v106) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v106 = map(mvbr_data, \(df) {
+    df |> 
+      select(v106) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1055,7 +1017,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-We can see the value labels of v106 are mostly similar except for mvbr 1996 and 2011 datasets.
+We can see the value labels and codes of v106 are mostly similar except for an extra  "unknown - certificate" category in mvbr 2009.
 
 ### v011 - Date of birth (in CMC)
 
@@ -1068,27 +1030,24 @@ The v011 variable, which has the dob of mothers in cmc, is a numeric variable. L
 
 # Create the summary statistics for v011 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(skim_v011 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v011) |> 
-        skim_without_charts() |> 
-        as_tibble() |> 
-        select(-c(skim_type, complete_rate)) |> 
-        rename(
-          variable = 1,
-          n_miss = 2,
-          mean = 3,
-          sd = 4,
-          min = 5,
-          p25 = 6,
-          p50 = 7,
-          p75 = 8,
-          max = 9
-        )
-    }
-  ))
+  mutate(skim_v011 = map(mvbr_data, \(df) {
+    df |> 
+      select(v011) |> 
+      skim_without_charts() |> 
+      as_tibble() |> 
+      select(-c(skim_type, complete_rate)) |> 
+      rename(
+        variable = 1,
+        n_miss = 2,
+        mean = 3,
+        sd = 4,
+        min = 5,
+        p25 = 6,
+        p50 = 7,
+        p75 = 8,
+        max = 9
+      )
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1129,16 +1088,13 @@ We check the value labels of v501 variable which gives the current marital statu
 
 # Create the data dictionary for v501 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v501 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v501) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v501 = map(mvbr_data, \(df) {
+    df |> 
+      select(v501) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1174,7 +1130,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-All the mvbr rounds have 5 value labels. The mvbr 1996, 2001 and 2006 rounds have a set of similar value label texts. Then mvbr 2011, 2016 and 2022 have another set of similar value labels.
+All the mvbr rounds have 6 value labels. Although the value labels and codes are mostly similar, the label wordings differ among 3 categories.
 
 ### v701 - Husband/Partner's education level
 
@@ -1187,16 +1143,13 @@ We check the value labels of v701 variable which gives the current marital statu
 
 # Create the data dictionary for v701 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v701 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v701) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v701 = map(mvbr_data, \(df) {
+    df |> 
+      select(v701) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1232,7 +1185,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-All the mvbr rounds have 5 value labels. The mvbr 1996, 2001 and 2006 rounds and mvbr 2011, 2016 and 2022 have a similar set of value labels with a difference in wording among them.
+All the mvbr rounds have 5 value labels. The mvbr rounds have a similar set of value labels and codes.
 
 ### v025 - Type of place of residence
 
@@ -1245,16 +1198,13 @@ We check the value labels of v025 variable which shows if a household belongs to
 
 # Create the data dictionary for v025 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v025 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v025) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v025 = map(mvbr_data, \(df) {
+    df |> 
+      select(v025) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1303,16 +1253,13 @@ We check the value labels of v151 variable which gives the gender of the househo
 
 # Create the data dictionary for v151 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_v151 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v151) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v151 = map(mvbr_data, \(df) {
+    df |> 
+      select(v151) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1352,7 +1299,7 @@ The values labels and codes for v151 are same across all the mvbr rounds.
 
 ### v152 - Age of household head
 
-Interestingly, we see v152 (a continuous variable) has value labels for all rounds except mvbr 1996. Therefore, we check the value labels of v152 for those rounds. First we create a nested tibble of v152's value labels.
+Interestingly, we see that v152 (a continuous variable) has value labels for all rounds. Therefore, we check the value labels of v152 for those rounds. First we create a nested tibble of v152's value labels.
 
 ```{r}
 #| label: create-dict-v152
@@ -1361,17 +1308,13 @@ Interestingly, we see v152 (a continuous variable) has value labels for all roun
 
 # Create the data dictionary for v152 in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  filter(svy_year != 1996) |> 
-  mutate(lookfor_v152 = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(v152) |> 
-        look_for() |> 
-        lookfor_to_long_format() |> 
-        select(value_labels)
-    }
-  ))
+  mutate(lookfor_v152 = map(mvbr_data, \(df) {
+    df |> 
+      select(v152) |> 
+      look_for() |> 
+      lookfor_to_long_format() |> 
+      select(value_labels)
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1407,7 +1350,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-We can see that the value labels of v152 are mostly for missing values. However, since v152 has no missing values across the mvbr rounds, we need not be concerned about them.
+We can see that the value labels of v152 are for missing values. However, since v152 has few missing values in mvbr 2009 and no missing values in mvbr 2016, we need not be concerned about them.
 
 ### v190 - Wealth quintile of household
 
@@ -1480,17 +1423,14 @@ The year-related variables might have different formatting in each survey. There
 
 # First we create the data dictionary of year-related vars in nested tibble
 mvbr1_pre_tmp1 <- mvbr1_pre_tmp0 |> 
-  mutate(lookfor_year = map(
-    mvbr_data,
-    \(df) {
-      df |> 
-        select(c(b2, v007, v010)) |> 
-        look_for(details = "full") |> 
-        # For correctly viewing the range column in data dictionary
-        convert_list_columns_to_character() |> 
-        select(-c(levels:n_na))
-    }
-  ))
+  mutate(lookfor_year = map(mvbr_data, \(df) {
+    df |> 
+      select(c(b2, v007, v010)) |> 
+      look_for(details = "full") |> 
+      # For correctly viewing the range column in data dictionary
+      convert_list_columns_to_character() |> 
+      select(-c(levels:n_na))
+  }))
 mvbr1_pre_tmp1
 
 ```
@@ -1655,7 +1595,7 @@ mvpr1_pre_tmp2 |>
 
 ```
 
-The above table gives an overall snapshot of the family structure related variables. Interestingly, all the variables including age of hh members (a continuous var) are of labelled class. The relation to head and de facto resident variables have few missing values in mvpr 1996. **Note that**, the three variables of interest hv101-hv102, two variables hv101 and hv103 have different number of value labels across the mvpr rounds. Next, we compare the value labels of the individual variables across the mvpr datasets.
+The above table gives an overall snapshot of the family structure related variables. Interestingly, all the variables including age of hh members (a continuous var) are of labelled class. The relation to head, de facto resident, sex and age of household member variables have few missing values in mvpr 2009. **Note that**, all the variables have different number of value labels across the mvpr rounds. Next, we compare the value labels of the individual variables across the mvpr datasets.
 
 ### hv101 - Relationship to head
 
@@ -1710,7 +1650,7 @@ mvpr1_pre_tmp2 |>
 
 ```
 
-The above table shows that the value label texts vary across the mvpr rounds. To harmonize the relationship to head variable we can use the following value labels -
+The above table shows that the value label texts are same across the mvpr rounds. To harmonize the relationship to head variable we can use the following value labels -
 
 -   1 head
 -   2 spouse
