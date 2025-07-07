@@ -172,7 +172,7 @@ npbr1_tmp_intro |>
 # required further
 rm(list = c("npbr1_tmp_intro", "nphr1_tmp_intro", "nppr1_tmp_intro"))
 
-# Clean unused memory using garbage collector
+# Reclaim unused space
 gc()
 
 ```

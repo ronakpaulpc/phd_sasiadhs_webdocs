@@ -1,0 +1,231 @@
+---
+title: "IADHS data pooling pre-checks"
+---
+
+# Getting started
+
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+  # Data i/o
+  "here",                 # relative file path
+  "rio",                  # file import-export
+  
+  # Data manipulation
+  "janitor",              # data cleaning fns
+  "haven",                # stata, sas, spss data io
+  "labelled",             # var labelling
+  "readxl",               # excel sheets
+  # "scales",               # to change formats and units
+  "skimr",                # quick data summary
+  "broom",                # view model results
+  
+  # Data analysis
+  "DHS.rates",            # demographic rates for dhs-like surveys
+  "GeneralOaxaca",        # BO decomposition for non-linear
+  "survey",               # apply survey weights
+  
+  # Analysis output
+  "gt",
+  # "modelsummary",          # output summary tables
+  "gtsummary",            # output summary tables
+  "flextable",            # creating tables from objects
+  "officer",              # editing in office docs
+  
+  # R graph related packages
+  "ggstats",
+  "RColorBrewer",
+  # "scales",
+  "patchwork",
+  
+  # Misc packages
+  "tidyverse",            # Data manipulation iron man
+  "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+Here we document the variable codes and labels of variables across all the India Demographic and Health Survey (DHS) datasets. We check the variable labels and codes before running the pooling code in "daprep-v01_iadhs.R". We pool the following India DHS surveys:
+
+```{r}
+#| label: data-import-temp
+#| echo: false
+#| output: false
+
+# Here we temporarily import the tibbles for sample size table creation
+# Importing the iabr nested tibble
+iabr1_tmp_intro <- read_rds(
+  file = here("website_data", "iabr1_nest0.rds")
+)
+# Importing the iair nested tibble
+iair1_tmp_intro <- read_rds(
+  file = here("website_data", "iair1_nest0.rds")
+)
+# Importing the iahr nested tibble
+iahr1_tmp_intro <- read_rds(
+  file = here("website_data", "iahr1_nest0.rds")
+)
+# Importing the iapr nested tibble
+iapr1_tmp_intro <- read_rds(
+  file = here("website_data", "iapr1_nest0.rds")
+)
+
+```
+
+```{r}
+#| label: tbl-detail-survey-rounds
+#| echo: true
+#| output: true
+#| tbl-cap: "India DHS datasets and their sample size to be used for pooling"
+
+# Creating the table of surveys to be used for pooling
+iabr1_tmp_intro |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
+  select(c(ctr_name, svy_year, n_births)) |> 
+  # Join vars from iair_tmp_intro
+  left_join(
+    iair1_tmp_intro |> 
+      mutate(n_women = prettyNum(n_women, big.mark = ",")) |> 
+      select(c(year, n_women)),
+    by = join_by(svy_year == year)
+  ) |> 
+  # Join vars from iahr_tmp_intro
+  left_join(
+    iahr1_tmp_intro |> 
+      mutate(n_households = prettyNum(n_households, big.mark = ",")) |> 
+      select(svy_year, n_households),
+    by = join_by(svy_year)
+  ) |> 
+  # Join vars from iapr_tmp_intro
+  left_join(
+    iapr1_tmp_intro |> 
+      mutate(n_persons = prettyNum(n_persons, big.mark = ",")) |> 
+      select(svy_year, n_persons),
+    by = join_by(svy_year)
+  ) |> 
+  # convert nested tibble to simple tibble
+  unnest(cols = c()) |> 
+  mutate(
+    ccode = row_number(), 
+    .before = ctr_name
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  autofit()
+
+```
+
+```{r}
+#| label: just-another-chunk01
+#| echo: false
+#| output: false
+
+# We remove the (.)_tmp_intro nested tibbles from the environment as they are not 
+# required further
+rm(list = c("iabr1_tmp_intro", 
+            "iair1_tmp_intro", 
+            "iahr1_tmp_intro", 
+            "iapr1_tmp_intro"))
+
+# Reclaim unused space
+gc()
+
+```
+
+We use the following variables for the pooled data analysis:
+
+-   **Dependent variable**
+    -   infantd = Index child died during infancy period (0-11 months)
+-   **Main Independent variable**
+    -   sibsurv_nmv = Survival status of preceding child (Death scarring)
+    -   binterval_3c_nmv_opp = Birth interval preceding to index child
+-   **Independent variables \[CHILD LEVEL\]**
+    -   cyob10y_opp = Birth cohort of index child
+    -   bord_c = Birth order of index child
+    -   sex_fm = Sex of index child
+    -   season = Season during birth
+-   **Independent variables \[MOTHER/PARENT LEVEL\]**
+    -   ~~myob_opp = Birth cohort of mother~~
+    -   macb_c_opp = Mother's age during birth of index child
+    -   medu_opp = Mother's Level of education
+    -   fedu_opp = Father's level of education
+-   **Independent variables \[HOUSEHOLD LEVEL\]**
+    -   religion = Religion
+    -   nat_lang = Native language of respondent
+    -   wi_qt_opp = Household wealth quintile
+    -   ~~hhgen_2c_opp = Generations in household~~
+    -   hhstruc_opp = Household structure
+    -   head_sex_fm = Sex of HH head
+-   **Independent variables \[COMMUNITY LEVEL\]**
+    -   por = Place of residence of the household
+    -   ecoreg = Ecological region
+
+*Note: (a) Crossed names indicates variable not included.*
+
+# Data import
+
+We will directly import the nested tibble here. The code for dataset preparation is in the "daprep-v01_iadhs.R" script file.
+
+```{r}
+#| label: data-import
+#| echo: true
+#| output: true
+
+# Here we import the tibbles to be used for dataset checking
+# Import the iabr nested tibble
+iabr1_pre_tmp0 <- read_rds(file = here("website_data", "iabr1_nest0.rds"))
+# Import the iahr nested tibble
+iahr1_pre_tmp0 <- read_rds(file = here("website_data", "iahr1_nest0.rds"))
+# Import the iapr nested tibble
+iapr1_pre_tmp0 <- read_rds(file = here("website_data", "iapr1_nest0.rds"))
+
+```
+

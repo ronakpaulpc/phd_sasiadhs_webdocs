@@ -175,7 +175,7 @@ rm(list = c("pkbr1_tmp_intro",
             "pkhr1_tmp_intro", 
             "pkpr1_tmp_intro"))
 
-# Clean unused memory using garbage collector
+# Reclaim unused space
 gc()
 
 ```
@@ -190,7 +190,7 @@ We use the following variables for the pooled data analysis:
 -   **Independent variables \[CHILD LEVEL\]**
     -   cyob10y_opp = Birth cohort of index child
     -   bord_c = Birth order of index child
-    -   sex_fm = Gender of index child
+    -   sex_fm = Sex of index child
     -   season = Season during birth
 -   **Independent variables \[MOTHER/PARENT LEVEL\]**
     -   ~~myob_opp = Birth cohort of mother~~

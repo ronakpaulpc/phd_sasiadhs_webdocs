@@ -172,7 +172,7 @@ bdbr1_tmp_intro |>
 # required further
 rm(list = c("bdbr1_tmp_intro", "bdhr1_tmp_intro", "bdpr1_tmp_intro"))
 
-# Clean unused memory using garbage collector
+# Reclaim unused space
 gc()
 
 ```
