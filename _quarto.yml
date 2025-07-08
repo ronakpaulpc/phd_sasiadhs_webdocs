@@ -7,6 +7,7 @@ website:
   page-footer: "Maintained with ❤️ by Ronak and Quarto"
   page-navigation: true
   back-to-top-navigation: true
+  reader-mode: true
   search: 
     location: sidebar
     type: textbox
@@ -17,7 +18,7 @@ website:
         href: index.qmd
       - text: About
         href: about.qmd
-      - text: Raw Data Dictionaries
+      - text: Full Datadicts
         menu:
         - text: Afghanistan DHS Dictionary
           href: dadict_afdhs.qmd
@@ -33,7 +34,7 @@ website:
           href: dadict_pkdhs.qmd
       - text: Variable Checklist
         href: davars_checklist.qmd
-      - text: Data Pooling Pre-checks
+      - text: Datapool Pre-checks
         menu:
         - text: Afghanistan DHS Pre-checks
           href: dapool_prechk-v01_afdhs.qmd
@@ -47,9 +48,9 @@ website:
           href: dapool_prechk-v01_npdhs.qmd
         - text: Pakistan DHS Pre-checks
           href: dapool_prechk-v01_pkdhs.qmd
-      - text: Pooled Data Dictionary
+      - text: Pooled Datadicts
         href: dadict_postpool.qmd
-      - text: Preliminary Data Analysis
+      - text: Prelim Data Analysis
         menu:
         - text: Bangladesh DHS Prelim
           href: daanal_prelim-v01_bddhs.qmd
@@ -58,9 +59,12 @@ website:
   sidebar: 
     style: docked
     background: none
+    tools: 
+      - icon: github
+        href: https://github.com/ronakpaulpc/sasiadhs_webdocs
     collapse-level: 2
     contents: 
-      - section: "Raw Data Dictionaries"
+      - section: "Full Datadicts"
         contents: 
           - text: Afghanistan DHS Dictionary
             href: dadict_afdhs.qmd
@@ -76,7 +80,7 @@ website:
             href: dadict_pkdhs.qmd
       - text: Variable Checklist
         href: davars_checklist.qmd
-      - section: "Data Pooling Pre-checks"
+      - section: "Datapool Pre-checks"
         contents:
           - text: Afghanistan DHS Pre-checks
             href: dapool_prechk-v01_afdhs.qmd
@@ -90,9 +94,9 @@ website:
             href: dapool_prechk-v01_npdhs.qmd
           - text: Pakistan DHS Pre-checks
             href: dapool_prechk-v01_pkdhs.qmd
-      - text: Pooled Data Dictionary
+      - text: Pooled Datadicts
         href: dadict_postpool.qmd
-      - section: "Preliminary Data Analysis"
+      - section: "Prelim Data Analysis"
         contents:
           - text: Bangladesh DHS Prelim
             href: daanal_prelim-v01_bddhs.qmd
