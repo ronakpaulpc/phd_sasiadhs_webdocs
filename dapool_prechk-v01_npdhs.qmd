@@ -1163,7 +1163,7 @@ All the npbr rounds have 5 value labels. The npbr 1996, 2001 and 2006 rounds hav
 
 ### v701 - Husband/Partner's education level
 
-We check the value labels of v701 variable which gives the current marital status of mother. First we create a nested tibble of v701's value labels.
+We check the value labels of v701 variable which gives the mother's husband or partner's education level. First we create a nested tibble of v701's value labels.
 
 ```{r}
 #| label: create-dict-v701
@@ -1270,7 +1270,7 @@ npbr1_pre_tmp2 |>
 
 ```
 
-The values labels and codes for v025 are same across all the npbr rounds.
+The value labels and codes for v025 are same across all the npbr rounds.
 
 ### v151 - Sex of household head
 
@@ -1325,7 +1325,7 @@ npbr1_pre_tmp2 |>
 
 ```
 
-The values labels and codes for v151 are same across all the npbr rounds.
+The value labels and codes for v151 are same across all the npbr rounds.
 
 ### v152 - Age of household head
 
@@ -1597,7 +1597,7 @@ npbr1_pre_tmp2 |>
 
 ```
 
-The values labels are same for npbr 1996 and 2001, and then they vary for the other datasets. The value labels "nepali", "bhojpuri" and "maithili" are same across all the npbr rounds hut their labels code are different. Therefore, we will use these labels for harmonization.
+The values labels are same for npbr 1996 and 2001, and then they vary for the other datasets. The value labels "nepali", "bhojpuri" and "maithili" are same across all the npbr rounds but their labels code are different. Therefore, we will use these labels for harmonization.
 
 ## Correcting year-related variables
 

@@ -310,7 +310,7 @@ iadhs <- tribble(
     ~var_name, ~ia_1992, ~ia_1998, ~ia_2005, ~ia_2015, ~ia_2019,
     "ID and Weight variables",          NA, NA, NA, NA, NA, 
     "Women's ind sample weight",        "v005", "v005", "v005", "v005", "v005", 
-    "Primary sampling unit",            "v021", "v021", "v021", "v021", "v021", 
+    "Primary sampling unit",            "v021", "v021", "s021", "v021", "v021", 
     "Sample stratum number",            "v022", "v022", "v022", "v022", "v022", 
     "Strata used in sample design",     "v023", "v023", "v023", "v023", "v023", 
     "Cluster number",                   "v001", "v001", "v001", "v001", "v001", 

@@ -62,7 +62,13 @@ website:
     tools: 
       - icon: github
         href: https://github.com/ronakpaulpc/sasiadhs_webdocs
-    collapse-level: 2
+      - icon: linkedin
+        href: https://www.linkedin.com/in/ronak-paul-16462014a/
+      - icon: twitter
+        href: https://x.com/that_ronak
+      - icon: bluesky
+        href: https://bsky.app/profile/ronakpaul.bsky.social
+    collapse-level: 1
     contents: 
       - section: "Full Datadicts"
         contents: 

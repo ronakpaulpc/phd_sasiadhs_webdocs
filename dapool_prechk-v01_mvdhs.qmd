@@ -1137,7 +1137,7 @@ All the mvbr rounds have 6 value labels. Although the value labels and codes are
 
 ### v701 - Husband/Partner's education level
 
-We check the value labels of v701 variable which gives the current marital status of mother. First we create a nested tibble of v701's value labels.
+We check the value labels of v701 variable which gives the mother's husband or partner's education level. First we create a nested tibble of v701's value labels.
 
 ```{r}
 #| label: create-dict-v701
@@ -1243,7 +1243,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-The values labels and codes for v025 are same across all the mvbr rounds.
+The value labels and codes for v025 are same across all the mvbr rounds.
 
 ### v151 - Sex of household head
 
@@ -1298,7 +1298,7 @@ mvbr1_pre_tmp2 |>
 
 ```
 
-The values labels and codes for v151 are same across all the mvbr rounds.
+The value labels and codes for v151 are same across all the mvbr rounds.
 
 ### v152 - Age of household head
 

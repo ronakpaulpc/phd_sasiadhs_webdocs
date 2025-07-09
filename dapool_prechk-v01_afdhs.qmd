@@ -1137,7 +1137,7 @@ We can see that v501 has 6 value labels of v106 in the above table. The value la
 
 ### v701 - Husband/Partner's education level
 
-We check the value labels of v701 variable which gives the current marital status of mother. First we create a nested tibble of v701's value labels.
+We check the value labels of v701 variable which gives the mother's husband or partner's education level. First we create a nested tibble of v701's value labels.
 
 ```{r}
 #| label: create-dict-v701
@@ -1243,7 +1243,7 @@ afbr1_pre_tmp2 |>
 
 ```
 
-We can see that v501 has 6 value labels of v106 in the above table. The value labels are similar to the recent DHS datasets of other South Asian countries.
+We can see that v025 has 2 value labels in the above table. The value labels are similar to the recent DHS datasets of other South Asian countries.
 
 ### v151 - Sex of household head
 
@@ -1298,7 +1298,7 @@ afbr1_pre_tmp2 |>
 
 ```
 
-The values labels and codes for v151 are similar to the other South Asian DHS datasets.
+The value labels and codes for v151 are similar to the other South Asian DHS datasets.
 
 ### v152 - Age of household head
 
