@@ -2,12 +2,14 @@
 
 This repository hosts the Quarto website for documenting the harmonization, pooling, and preliminary analysis of Demographic and Health Survey (DHS) data from South Asian countries.
 
-🔗 Visit the site: https://ronakpaulpc.github.io/sasiadhs-webdocs/
+🔗 Visit the site: [https://ronakpaulpc.github.io/sasiadhs_webdocs/](https://ronakpaulpc.github.io/sasiadhs_webdocs/)
 
 ## Contents
 
-- Raw Data Dictionaries
+- Full Data Dictionaries
+- Variable checklists
 - Data Pooling Pre-checks
+- Pooled Data Dictionaries
 - Preliminary Data Analyses
 
 ## About
