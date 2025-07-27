@@ -6,7 +6,7 @@ title: "About"
 
 This is the Quarto website for documenting the harmonization, pooling, and preliminary analysis of Demographic and Health Survey (DHS) datasets from South Asian countries.
 
-Visit the site: https://ronakpaulpc.github.io/sasiadhs-dhs-webdocs/
+Visit the site: https://ronakpaulpc.github.io/sasiadhs_webdocs/
 
 This work is part of my PhD research on **"Clustering and Risk Factors of Fetal Deaths and Early-life Mortality Across Families and Communities in South Asian Countries"** at the International Institute for Population Sciences, Mumbai.
 
@@ -17,5 +17,3 @@ This work is part of my PhD research on **"Clustering and Risk Factors of Fetal 
 -   Data Pooling Pre-checks
 -   Pooled Data Dictionaries
 -   Preliminary Data Analyses
-
-

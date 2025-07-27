@@ -1829,7 +1829,7 @@ Next, we check the value labels of the caste group variable. First we create a n
 
 # Create the data dictionary in nested tibble
 iahr1_pre_tmp1 <- iahr1_pre_tmp0 |> 
-  mutate(lookfor_wiqt = map(iahr_data, \(df) {
+  mutate(lookfor_caste = map(iahr_data, \(df) {
     df |> 
       select("hh_caste") |> 
       look_for() |> 
@@ -1844,13 +1844,13 @@ iahr1_pre_tmp1
 #| label: tbl-dict-caste
 #| echo: true
 #| output: true
-#| tbl-cap: "Data dictionary of wealth quintiles across the iahr rounds"
+#| tbl-cap: "Data dictionary of caste groups across the iahr rounds"
 
 # Now we unnest the tibble and refine the pooled data dictionary
 iahr1_pre_tmp2 <- iahr1_pre_tmp1 |> 
   # First we select the required cols and unnest()
-  select(c(ctr_name, svy_year, lookfor_wiqt)) |> 
-  unnest(cols = c(lookfor_wiqt)) |> 
+  select(c(ctr_name, svy_year, lookfor_caste)) |> 
+  unnest(cols = c(lookfor_caste)) |> 
   # Next we make the num of value labels same across each round
   mutate(label_num = parse_number(value_labels)) |> 
   complete(ctr_name, svy_year, label_num) |>
@@ -1861,7 +1861,7 @@ iahr1_pre_tmp2 <- iahr1_pre_tmp1 |>
     names_prefix = "iahr_"
   ) |>
   # Show the variable name in a col
-  mutate(var_name = "Wealth index quintiles", .before = 2)
+  mutate(var_name = "Caste of hh head", .before = 2)
 
 # Convert the tibble to flextable for easy viewing
 iahr1_pre_tmp2 |> 
@@ -2205,5 +2205,3 @@ TASK:
 -   Preceding birth interval construction has changed with DHS-7. We could re-construct it.
 
 TO BE CONTINUED ...
-
-

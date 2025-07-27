@@ -136,7 +136,7 @@ afdhs <- tribble(
     "Household-level variables",        NA,
     "Sex of household head",            "v151",
     "Age of household head",            "v152",
-    "Wealth index quintile",            "v190",
+    "Wealth index quintile (BR)",       "v190",
     "Social group variables",           NA,
     "Religion",                         NA,
     "Ethnicity",                        "v131",
@@ -229,7 +229,7 @@ bddhs <- tribble(
     "Household-level variables",        NA, NA, NA, NA, NA, NA, NA, NA, NA, 
     "Sex of household head",            "v151", "v151", "v151", "v151", "v151", "v151", "v151", "v151", "v151", 
     "Age of household head",            "v152", "v152", "v152", "v152", "v152", "v152", "v152", "v152", "v152", 
-    "Wealth index quintile",            NA, NA, NA, "v190", "v190", "v190", "v190", "v190", "v190", 
+    "Wealth index quintile (BR)",       NA, NA, NA, "v190", "v190", "v190", "v190", "v190", "v190", 
     "Social group variables",           NA, NA, NA, NA, NA, NA, NA, NA, NA,
     "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130", "v130",
     "Ethnicity",                        NA, NA, NA, NA, NA, NA, NA, NA, NA,
@@ -294,7 +294,7 @@ bddhs_ft
 
 **NOTE:**
 
--   In Bangladesh DHS 1993, 1996 and 1996 the wealth index variables is available in the HR files.
+-   In Bangladesh DHS 1993, 1996 and 1996 the wealth index variables are available in the HR files.
 
 # India variable checklist
 
@@ -341,7 +341,7 @@ iadhs <- tribble(
     "Household-level variables",        NA, NA, NA, NA, NA,
     "Sex of household head",            "v151", "v151", "v151", "v151", "v151", 
     "Age of household head",            "v152", "v152", "v152", "v152", "v152", 
-    "Wealth index quintile",            NA, NA, "v190", "v190", "v190", 
+    "Wealth index quintile (BR)",       NA, NA, "v190", "v190", "v190", 
     "Social group variables",           NA, NA, NA, NA, NA,
     "Religion",                         "v130", "v130", "v130", "v130", "v130",
     "Ethnicity",                        "v131", "v131", NA, "v131", "v131",
@@ -405,7 +405,7 @@ iadhs_ft
 -   In India DHS 1992 caste variable is available only in the HR and PR files.
 -   Across all India DHS rounds ethnicity variable is similar to caste.
 -   The language-related variables are in the IR and BR files.
--   In India DHS 1992 and 1998 the wealth index variables is available in the HR files.
+-   In India DHS 1992 and 1998 the wealth index variables are available in the HR files.
 
 # Maldives variable checklist
 
@@ -452,7 +452,7 @@ mvdhs <- tribble(
     "Household-level variables",        NA, NA, 
     "Sex of household head",            "v151", "v151", 
     "Age of household head",            "v152", "v152", 
-    "Wealth index quintile",            "v190", "v190", 
+    "Wealth index quintile (BR)",       "v190", "v190", 
     "Social group variables",           NA, NA,
     "Religion",                         NA, NA,
     "Caste",                            NA, NA,
@@ -508,6 +508,10 @@ mvdhs_ft
 
 ```
 
+**NOTE:** Regarding the variable names and their corresponding datasets
+
+-   There are no common social group variables across all the Maldives DHS rounds.
+
 # Nepal variable checklist
 
 The variable availability for Nepal is given below.
@@ -553,7 +557,7 @@ npdhs <- tribble(
     "Household-level variables",        NA, NA, NA, NA, NA, NA,
     "Sex of household head",            "v151", "v151", "v151", "v151", "v151", "v151",
     "Age of household head",            "v152", "v152", "v152", "v152", "v152", "v152",
-    "Wealth index quintile",            "v190", "v190", "v190", "v190", "v190", "v190",
+    "Wealth index quintile (BR)",       NA, NA, "v190", "v190", "v190", "v190",
     "Social group variables",           NA, NA, NA, NA, NA, NA,
     "Religion",                         "v130", "v130", "v130", "v130", "v130", "v130",
     "Caste",                            "sh020", "sh27", "scaste", NA, NA, NA,
@@ -620,7 +624,7 @@ npdhs_ft
 -   In all Nepal DHS rounds the ethnicity variable is similar to caste.
 -   The caste variable is available in the HR and PR files of 1996 and 2001 rounds and in the BR and IR files of 2006 round.
 -   The language-related variables are in the IR and BR files.
--   In Nepal DHS 1996 and 2001 the wealth index variable is available in a separate file.
+-   In Nepal DHS 1996 and 2001 the wealth index variables are available in a separate file.
 
 # Pakistan variable checklist
 
@@ -667,7 +671,7 @@ pkdhs <- tribble(
     "Household-level variables",        NA, NA, NA, NA,
     "Sex of household head",            "v151", "v151", "v151", "v151",
     "Age of household head",            "v152", "v152", "v152", "v152",
-    "Wealth index quintile",            "v190", "v190", "v190", "v190",
+    "Wealth index quintile (BR)",       NA, "v190", "v190", "v190",
     "Social group variables",           NA, NA, NA, NA,
     "Religion",                         NA, NA, NA, NA,
     "Caste",                            NA, NA, NA, NA,
@@ -725,11 +729,11 @@ pkdhs_ft
 
 ```
 
+**NOTE:** Regarding the variable names and their corresponding datasets
 
-#### START FROM HERE ####
+-   The language-related variables are in the IR and BR files.
+-   In Pakistan DHS 1990 the wealth index variables are available in a separate file.
+
+#### START FROM HERE
 
 Majority of variables have been compared and checked. Need to check for tobacco consumption and pregnancy calendar variables.
-
-
-
-

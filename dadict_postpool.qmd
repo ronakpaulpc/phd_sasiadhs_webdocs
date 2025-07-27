@@ -87,9 +87,9 @@ set_flextable_defaults(
 
 # Document introduction
 
-We document the variable labels and other contents of all variables across all the pooled Demographic and Health Survey (DHS) birth history datasets of South Asian countries here. This will be primary document for viewing what variables will be used for analysis in PhD research. This document will guide us on the variable availability in the pooled datasets of the various South Asian countries.
+We document the variable labels and other contents of all variables across all the pooled Demographic and Health Survey (DHS) birth history recode (BR) datasets of South Asian countries here. This will be primary document for viewing what variables will be used for analysis in PhD research. This document will guide us on the variable availability in the pooled datasets of the various South Asian countries.
 
-This document contains variable details for the following Afghanistan DHS surveys:
+This document contains variable details for the following South Asian DHS surveys:
 
 ```{r}
 #| label: data-import
@@ -97,41 +97,173 @@ This document contains variable details for the following Afghanistan DHS survey
 #| output: false
 
 # Importing the pooled dataset of sasiadhs countries
+# Importing the Afghanistan DHS pooled dataset
+afbr1_pl1 <- read_rds(
+  file = here("website_data", "afbr1_pl1.rds")
+)
 # Importing the Bangladesh DHS pooled dataset
-bdbr_pl <- read_rds(
+bdbr1_pl1 <- read_rds(
   file = here("website_data", "bdbr1_pl1.rds")
 )
+# Importing the India DHS pooled dataset
+iabr1_pl1 <- read_rds(
+  file = here("website_data", "iabr1_pl1.rds")
+)
+# Importing the Maldives DHS pooled dataset
+mvbr1_pl1 <- read_rds(
+  file = here("website_data", "mvbr1_pl1.rds")
+)
 # Importing the Nepal DHS pooled dataset
-npbr_pl <- read_rds(
+npbr1_pl1 <- read_rds(
   file = here("website_data", "npbr1_pl1.rds")
+)
+# Importing the Pakistan DHS pooled dataset
+pkbr1_pl1 <- read_rds(
+  file = here("website_data", "pkbr1_pl1.rds")
+)
+# Importing the Pakistan DHS pooled dataset
+sasiadhs_pl0 <- read_rds(
+  file = here("website_data", "sasiadhs_pooled0.rds")
 )
 
 ```
 
 ```{r}
 #| label: tbl-detail-survey-rounds
-#| echo: true
+#| echo: false
 #| output: true
-#| tbl-cap: "South Asian DHS datasets and their sample size to be used for pooling"
+#| tbl-cap: "South Asian DHS datasets and their pooled sample size"
 
 # Creating the table of pooled surveys to be used for analysis
 sasiadhs_tbl <- tibble(
-  ccode = c(1:2),
-  country = c("Bangladesh", "Nepal"),
-  n_sample = c(nrow(bdbr_pl), nrow(npbr_pl)),
-  n_variables = c(ncol(bdbr_pl), ncol(npbr_pl))
+  ctr_code = c(1:7),
+  ctr_name = c("Afghanistan", "Bangladesh", "India", "Maldives", "Nepal", 
+               "Pakistan", "South Asia"),
+  n_births = c(nrow(afbr1_pl1), nrow(bdbr1_pl1), nrow(iabr1_pl1), 
+               nrow(mvbr1_pl1), nrow(npbr1_pl1), nrow(pkbr1_pl1),
+               nrow(sasiadhs_pl0)),
+  n_variables = c(ncol(afbr1_pl1), ncol(bdbr1_pl1), ncol(iabr1_pl1), 
+                  ncol(mvbr1_pl1), ncol(npbr1_pl1), ncol(pkbr1_pl1),
+                  ncol(sasiadhs_pl0))
 )
 
 # Convert and view as flextable
 sasiadhs_tbl |> 
-  mutate(n_sample = prettyNum(n_sample, big.mark = ",")) |> 
+  mutate(n_births = prettyNum(n_births, big.mark = ",")) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all")
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_code    = "Country code",
+    ctr_name    = "Country name",
+    n_births    = "Sample size",
+    n_variables = "Variables"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
 
 ```
 
-Here we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them.
+Next we show the variable checklist of user-prepared variables across the South Asian Demographic and Health Survey (DHS) datasets. This will be helpful for finding out the similar and dissimilar variables across the South Asian DHS datasets. We check the variable availability from the pooled data dictionaries and after that we perform the data analysis accordingly.
+
+The variable checklist for user-prepared variables across the South Asian DHS datasets are given below.
+
+```{r}
+#| label: data-checklist-sasia
+#| echo: false
+#| output: false
+
+# We create the data of the checklist
+sasia_dhs <- tribble(
+    ~var_label, ~var_name,                ~af, ~bd, ~ia, ~mv, ~np, ~pk, ~sasia,
+    "ID AND WEIGHT VARIABLES", NA,        NA, NA, NA, NA, NA, NA, NA,
+    "Country name", "ctr_name",           "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Country code", "ctr_code",           "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Survey year",  "year",               "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Unique birth ID", "uniqueid",        "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Community ID", "commid",             "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Household ID", "hhid",               "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Mother ID", "motherid",              "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Un-normalization factor", "svy_unf", "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Women's pooled weight", "svy_wwgt6", "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Primary sampling unit", "svy_psu",   "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Sample strata", "svy_strata",        "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Birth order", "bord",                "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "DEPENDENT VARIABLES", NA,            NA, NA, NA, NA, NA, NA, NA,
+    "Infant mortality", "infantd_01",     "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Under-five mortality", "under5d_01", "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "MAIN INDEPENDENT VARIABLES", NA,     NA, NA, NA, NA, NA, NA, NA,
+    "Death scarring", "sibsurv_3c",      "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "Birth interval preceding", "binterval_3c_opp", "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+    "CHILD-LEVEL VARIABLES", NA,          NA, NA, NA, NA, NA, NA, NA,
+    "Birth cohort", "cyob10y_opp",        "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Birth order", "bord_c",              "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Sex of child", "sex_fm",             "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Season during birth", "season",      "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "MOTHER-LEVEL VARIABLES", NA,         NA, NA, NA, NA, NA, NA, NA,
+    "Mother's age during childbirth", "macb_c_opp", "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Mother's education", "medu_opp",     "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Father's education", "fedu_opp",     "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "HOUSEHOLD-LEVEL VARIABLES", NA,      NA, NA, NA, NA, NA, NA, NA,
+    "Religion", "religion",               NA, "Y", "Y", NA, "Y", NA, NA,
+    "Caste", "castehh",                   NA, NA, "Y", NA, NA, NA, NA,
+    "Ethnicity", "ethnicity",             "Y", NA, NA, NA, NA, NA, NA,
+    "Native language", "nat_lang",        "Y", NA, NA, NA, "Y", "Y", NA,
+    "Wealth quintile", "wi_qt_opp",       "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Household structure", "hhstruc_opp", "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Sex of hh head", "head_sex_fm",      "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "COMMUNITY-LEVEL VARIABLES", NA,      NA, NA, NA, NA, NA, NA, NA,
+    "Ecological region", "ecoreg",        NA, NA, NA, NA, "Y", NA, NA,
+    "Place of residence", "por",          "Y", "Y", "Y", "Y", "Y", "Y", "Y",
+    "Sub-national region", "subreg",      "Y", "Y", "Y", "Y", NA, "Y", NA
+) |> 
+  mutate(pos = row_number(), .before = 1)
+
+```
+
+```{r}
+#| label: tbl-checklist-sasia
+#| echo: false
+#| output: true
+#| tbl-cap: "Checklist of variables in the pooled South Asian DHS datasets"
+
+# Create the flextable
+sasia_dhs_ft <- sasia_dhs |> 
+  flextable() |> 
+  # rename table headers
+  set_header_labels(
+    var_label   = "Variable label",
+    var_name    = "Variable name",
+    af          = "AF",
+    bd          = "BD",
+    ia          = "IA",
+    mv          = "MV",
+    np          = "NP",
+    pk          = "PK",
+    sasia       = "SA"
+  ) |> 
+  # make section headers bold-italicized
+  bold(i = c(1, 14, 17, 20, 25, 29, 37), part = "body") |>
+  italic(i = c(1, 14, 17, 20, 25, 29, 37), part = "body")
+
+# Define the column names to check for non-missing values
+year_cols <- names(sasia_dhs)[4:10]
+
+# Loop through each year column and apply bg to non-NA cells
+for (col in year_cols) {
+  sasia_dhs_ft <- sasia_dhs_ft |>
+    bg(i = which(!is.na(sasia_dhs[[col]])), j = col, bg = "darkseagreen1")
+}
+
+# Print the flextable
+sasia_dhs_ft
+
+```
+
+In the above checklist, we have dataset name in the table header row, variable label and name in the table col and variable availability as records. If a variable is available in the dataset we denote it as "Y" (for Yes) and if it's unavailable we keep the records as missing.
+
+Next we will create basic data dictionaries of each datasets using the labelled package. In our earlier efforts we realized that the method for generation data dictionaries for each dataset are similar. Hence, we will create a function using the look_for() command to generate the data dictionaries and view them. The data dictionaries for South Asia and it's countries are given below.
 
 ```{r}
 #| label: fn-gen-dadict
@@ -151,27 +283,139 @@ dadict_basic <- function(df) {
 
 ```
 
+# Afghanistan DHS pooled data dictionary
+
+Here we check the variable details of the Afghanistan birth history recode (BR) pooled dataset.
+
+```{r}
+#| label: dict-afbr1-pl1
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the afbr pooled dataset.
+afbr1_pl1 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    ctr_name = "Afghanistan",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
+
+```
+
 # Bangladesh DHS pooled data dictionary
 
 Here we check the variable details of the Bangladesh birth history recode (BR) pooled dataset.
 
 ```{r}
-#| label: dict-bdbr-pl
+#| label: dict-bdbr1-pl1
 #| echo: false
 #| output: true
 
 # We create the data dictionary of the bdbr pooled dataset.
-bdbr_pl |>
+bdbr1_pl1 |>
   # generate data dictionary
   dadict_basic() |> 
   # include survey name and year for reference
   mutate(
-    svy_name = "bdbr",
+    ctr_name = "Bangladesh",
     .before = 1
   ) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all")
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
+
+```
+
+# India DHS pooled data dictionary
+
+Here we check the variable details of the India birth history recode (BR) pooled dataset.
+
+```{r}
+#| label: dict-iabr1-pl1
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the iabr pooled dataset.
+iabr1_pl1 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    ctr_name = "India",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
+
+```
+
+# Maldives DHS pooled data dictionary
+
+Here we check the variable details of the Maldives birth history recode (BR) pooled dataset.
+
+```{r}
+#| label: dict-mvbr1-pl1
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the mvbr pooled dataset.
+mvbr1_pl1 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    ctr_name = "Maldives",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
 
 ```
 
@@ -180,23 +424,102 @@ bdbr_pl |>
 Here we check the variable details of the Nepal birth history recode (BR) pooled dataset.
 
 ```{r}
-#| label: dict-npbr-pl
+#| label: dict-npbr1-pl1
 #| echo: false
 #| output: true
 
 # We create the data dictionary of the npbr pooled dataset.
-npbr_pl |>
+npbr1_pl1 |>
   # generate data dictionary
   dadict_basic() |> 
   # include survey name and year for reference
   mutate(
-    svy_name = "npbr",
+    ctr_name = "Nepal",
     .before = 1
   ) |> 
   # convert to flextable object
   qflextable() |> 
-  align(align = "left", part = "all")
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
 
 ```
+
+# Pakistan DHS pooled data dictionary
+
+Here we check the variable details of the Pakistan birth history recode (BR) pooled dataset.
+
+```{r}
+#| label: dict-pkbr1-pl1
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the pkbr pooled dataset.
+pkbr1_pl1 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    ctr_name = "Pakistan",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
+
+```
+
+# South Asia DHS pooled data dictionary
+
+Here we check the variable details of the South Asia DHS pooled dataset.
+
+```{r}
+#| label: dict-sasiadhs-pl0
+#| echo: false
+#| output: true
+
+# We create the data dictionary of the South Asia DHS pooled dataset.
+sasiadhs_pl0 |>
+  # generate data dictionary
+  dadict_basic() |> 
+  # include survey name and year for reference
+  mutate(
+    ctr_name = "South Asia",
+    .before = 1
+  ) |> 
+  # convert to flextable object
+  qflextable() |> 
+  align(align = "left", part = "all") |> 
+  # rename table headers
+  set_header_labels(
+    ctr_name    = "Country name",
+    variable    = "Variable name",
+    label       = "Variable label",
+    col_type    = "Variable type",
+    missing     = "Missing values"
+  ) |> 
+  # set table to autofit
+  set_table_properties(layout = "autofit")
+
+```
+
 
 

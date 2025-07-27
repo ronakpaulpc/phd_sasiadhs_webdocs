@@ -199,15 +199,15 @@ We use the following variables for the pooled data analysis:
     -   medu_opp = Mother's Level of education
     -   fedu_opp = Father's level of education
 -   **Independent variables \[HOUSEHOLD LEVEL\]**
-    -   religion = Religion
-    -   nat_lang = Native language of respondent
+    -   ~~religion = Religion~~
+    -   ~~nat_lang = Native language of respondent~~
     -   wi_qt_opp = Household wealth quintile
     -   ~~hhgen_2c_opp = Generations in household~~
     -   hhstruc_opp = Household structure
     -   head_sex_fm = Sex of HH head
 -   **Independent variables \[COMMUNITY LEVEL\]**
     -   por = Place of residence of the household
-    -   ecoreg = Ecological region
+    -   ~~ecoreg = Ecological region~~
 
 *Note: (a) Crossed names indicates variable not included.*
 
