@@ -1,0 +1,101 @@
+---
+title: "IADHS preliminary data analysis"
+---
+
+# Getting started
+
+Here we show the pre-requisite code sections. Run these at the outset to avoid errors. First we load the required packages.
+
+```{r}
+#| label: load-packages
+#| echo: true
+#| output: false
+
+easypackages::libraries(
+    
+    # Data i/o
+    "here",                 # relative file path
+    "rio",                  # file import-export
+    
+    # Data manipulation
+    "janitor",              # data cleaning fns
+    "haven",                # stata, sas, spss data io
+    "labelled",             # var labelling
+    "readxl",               # excel sheets
+    # "scales",               # to change formats and units
+    "skimr",                # quick data summary
+    "broom",                # view model results
+    
+    # Data analysis
+    "DHS.rates",            # demographic rates for dhs-like surveys
+    "GeneralOaxaca",        # BO decomposition for non-linear
+    "survey",               # apply survey weights
+    "survival",             # base pkg for survival analysis
+    
+    # Analysis output
+    "gt",
+    # "modelsummary",          # output summary tables
+    "gtsummary",            # output summary tables
+    "flextable",            # creating tables from objects
+    "officer",              # editing in office docs
+    
+    # R graph related packages
+    "ggstats",              # graph of regression estimates
+    "RColorBrewer",         # graph themes
+    # "scales",
+    "patchwork",            # combining graphs
+    
+    # Misc packages
+    "tidyverse",            # Data manipulation iron man
+    "tictoc"                # Code timing
+)
+
+```
+
+Next we turn off scientific notations.
+
+```{r}
+#| label: turn-off-scientific-notation
+#| echo: true
+#| output: false
+ 
+options(scipen = 999)
+
+```
+
+Next we set the default gtsummary print engine for tables.
+
+```{r}
+#| label: set-gtsummary-default
+#| echo: true
+#| output: false 
+
+theme_gtsummary_printer(print_engine = "flextable")
+
+```
+
+Now we set the flextable output defaults.
+
+```{r}
+#| label: set-flextable-default
+#| echo: true
+#| output: false 
+
+set_flextable_defaults(
+  font.size = 11,
+  text.align = "left",
+  big.mark = "",
+  background.color = "white",
+  table.layout = "autofit",
+  theme_fun = theme_vanilla
+)
+
+```
+
+# Document introduction
+
+In this document we do preliminary analysis of examining infant mortality clustering under mothers in the pooled India Demographic and Health Survey (IADHS) datasets. This document has selected code for analysis and the full spectrum of preliminary analysis are available in the "iadhs_datanal1.R" script file.
+
+
+
+

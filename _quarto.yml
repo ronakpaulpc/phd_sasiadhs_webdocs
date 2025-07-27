@@ -52,10 +52,18 @@ website:
         href: dadict_postpool.qmd
       - text: Prelim Data Analysis
         menu:
+        - text: Afghanistan DHS Prelim
+          href: daanal_prelim-v01_afdhs.qmd
         - text: Bangladesh DHS Prelim
           href: daanal_prelim-v01_bddhs.qmd
+        - text: India DHS Prelim
+          href: daanal_prelim-v01_iadhs.qmd  
+        - text: Maldives DHS Prelim
+          href: daanal_prelim-v01_mvdhs.qmd
         - text: Nepal DHS Prelim
           href: daanal_prelim-v01_npdhs.qmd
+        - text: Pakistan DHS Prelim
+          href: daanal_prelim-v01_pkdhs.qmd  
   sidebar: 
     style: docked
     background: none
@@ -104,11 +112,19 @@ website:
         href: dadict_postpool.qmd
       - section: "Prelim Data Analysis"
         contents:
+          - text: Afghanistan DHS Prelim
+            href: daanal_prelim-v01_afdhs.qmd
           - text: Bangladesh DHS Prelim
             href: daanal_prelim-v01_bddhs.qmd
+          - text: India DHS Prelim
+            href: daanal_prelim-v01_iadhs.qmd  
+          - text: Maldives DHS Prelim
+            href: daanal_prelim-v01_mvdhs.qmd
           - text: Nepal DHS Prelim
             href: daanal_prelim-v01_npdhs.qmd
-    
+          - text: Pakistan DHS Prelim
+            href: daanal_prelim-v01_pkdhs.qmd  
+
 format:
   html:
     theme: 

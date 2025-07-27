@@ -123,7 +123,7 @@ pkbr1_pl1 <- read_rds(
 )
 # Importing the Pakistan DHS pooled dataset
 sasiadhs_pl0 <- read_rds(
-  file = here("website_data", "sasiadhs_pooled0.rds")
+  file = here("website_data", "sasiadhs_pl0.rds")
 )
 
 ```
